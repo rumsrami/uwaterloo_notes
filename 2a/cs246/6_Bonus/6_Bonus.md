@@ -110,5 +110,3 @@ Lambda
 
 -   If you want to SAVE this lambda, what you can do is say auto x =
     \[\]\...;
-
-\<++\>

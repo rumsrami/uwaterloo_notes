@@ -258,26 +258,26 @@ void f() {
 \item By doing so, NOW we can store data on heap, but if we reach an exception, by stack unwinding, the data will be deleted through the destructor of the stack-allocated item.
 \item This is has the added benefit of making resource memory incredibly easy.  As we will make as many resources wrapped in a stack-allocated object, we will avoid having to call (and possibly forget) delete calls to free memory.
 \item fstream already follows this idiom to make sure files are closed properly.
-\item We can use unique_ptr<T> class that holds a pointer of type T, which provides a dtor that will delete said pointer.  You can treat this like a regular pointer, so you can dereference.  Include <memory>.
-\item We use ``auto NAME = std::make_unique<CLASS>(VALUE);''
+\item We can use unique\_ptr<T> class that holds a pointer of type T, which provides a dtor that will delete said pointer.  You can treat this like a regular pointer, so you can dereference.  Include <memory>.
+\item We use ``auto NAME = std::make\_unique<CLASS>(VALUE);''
 \item What happens with the following?
 \begin{itemize}
 class c{...}
-unique_ptr<c> p {new c{...}};
-unique_ptr<c> q = p; //copy ctor invoked, buuuuut it gives an error.
+unique\_ptr<c> p {new c{...}};
+unique\_ptr<c> q = p; //copy ctor invoked, buuuuut it gives an error.
 \end{itemize}
 \item The copy ctor will give an error.  It's in the name --- it's a unique pointer!  If copy ctor did work, it would result in a double-free upon the destruction of the stack.
 \item In other words, since it does not deep copy, deleting one will delete the same pointer that p relies on.
-\item Thus, the copy ctor for unique_ptr is disabled.
-\item The unique_ptr class uses ``= delete'' on its copy ctor/assignment to ensure there is no copying.
-\item Note that the MOVE operation is still fine --- this is because move is for an rvalue, and we will never be able to ``move'' an on-stack unique_ptr.  We just cannot COPY an existing unique_ptr!
-\item What if, for some reason, we need to have more than one pointer pointing at the same data on heap?  That is, we want more than one unique_ptr pointing at the same thing on the heap.
-\item Simple!  Make one of your pointers a unique_ptr, and all other ones just normal pointers!  Make sure your unique_ptr is popped last (so declare it first), so when stack is destroyed/unwinded, we will never have a double-free.
+\item Thus, the copy ctor for unique\_ptr is disabled.
+\item The unique\_ptr class uses ``= delete'' on its copy ctor/assignment to ensure there is no copying.
+\item Note that the MOVE operation is still fine --- this is because move is for an rvalue, and we will never be able to ``move'' an on-stack unique\_ptr.  We just cannot COPY an existing unique\_ptr!
+\item What if, for some reason, we need to have more than one pointer pointing at the same data on heap?  That is, we want more than one unique\_ptr pointing at the same thing on the heap.
+\item Simple!  Make one of your pointers a unique\_ptr, and all other ones just normal pointers!  Make sure your unique\_ptr is popped last (so declare it first), so when stack is destroyed/unwinded, we will never have a double-free.
 \item Note the above only works if you do not call delete on any of the normal pointers!  
-\item But what if, for some god-forsaken reason, we want to have many pointers pointing to the same location on heap, but we want each pointer to OWN the data, like unique_ptr?  And we don't want to have to deal with the bullshit of making sure the unique_ptr is popped last?  We have something for that, called std::shared_ptr.
+\item But what if, for some god-forsaken reason, we want to have many pointers pointing to the same location on heap, but we want each pointer to OWN the data, like unique\_ptr?  And we don't want to have to deal with the bullshit of making sure the unique\_ptr is popped last?  We have something for that, called std::shared\_ptr.
 \item This thing even COUNTS how many pointers are pointing at the same memory address.  When we delete a pointer, the counter goes down, and only if the counter hits zero will the memory be freed.  This is called a reference count.
-\item Because of this, copying is valid with shared_ptrs.
-\item We use ``auto NAME = std::make_shared<CLASS>(VALUE);''
+\item Because of this, copying is valid with shared\_ptrs.
+\item We use ``auto NAME = std::make\_shared<CLASS>(VALUE);''
 \item In this way, we can have multiple pointers that own the heap memory, as well as the order of how we pop not mattering!
 \item To sum up, we used the shared and uniqute pointers intsead of raw pointers as much as possible!  This reduces the chance of memleaks.  For more complicated resources, you'll have to create your own wrapper class.
 \item We have three types of exception safety for a function f (from weakest to strongest):
@@ -341,7 +341,7 @@ struct CImpl P {
 };
 
 class C {
-        std::unique_ptr<CImpl>pImpl;
+        std::unique\_ptr<CImpl>pImpl;
         public:
             void f() {
                 auto tmp - make_unique<CImpl><*PImpl);
@@ -355,8 +355,8 @@ class C {
 \Section{STL vector and exception safety}
 \item Vectors use heap-allocated memory, but also use RAII to ensure the vector itself is not leaked.
 \item However, it does not guarantee what will happen to its contents.
-\item To avoid dealing with delete and possible exeception-caused leaked memory, if we, say, have a vector of pointers, it is smarter to use a vector of unique_ptrs,allowing us to not need explicit deallocation.
-\item We can also use ``emplace_back'' versus ``push_back'' when we are adding elements to our vector.  Using emplace_back gives our vector a strong guarantee,
+\item To avoid dealing with delete and possible exeception-caused leaked memory, if we, say, have a vector of pointers, it is smarter to use a vector of unique\_ptrs,allowing us to not need explicit deallocation.
+\item We can also use ``emplace\_back'' versus ``push\_back'' when we are adding elements to our vector.  Using emplace\_back gives our vector a strong guarantee,
 \item But what does emplace do?
 \begin{itemize}
 \item If we need to resize, then we allocate a new, larger array.
@@ -382,12 +382,12 @@ class C {
 \item Do NOT use C style casting.
 \item We have four different ways of casting in C++:
 \begin{itemize}
-\item static_cast: we use this for sensible casts, where there is well defined behaviour.  For example, double to int.  We can do ``static_cast<int>(d)'', where d is a double.
-\item reinterpret_cast: for unsafe casts that are implementation dependent.  For example, casting a Student to a Turtle: reinterpret_cast<Turtle*>(&s).  Who knows what'll happen?
-\item const_cast: used to add or remove ``constness' from something.  However, beware of ``const poisoning'' which may occur due to this, as you might set off a chain reaction of issues by using const casting.  We use const_cast<int*>(p), where p was a const pointer to an integer.  
+\item static\_cast: we use this for sensible casts, where there is well defined behaviour.  For example, double to int.  We can do ``static\_cast<int>(d)'', where d is a double.
+\item reinterpret\_cast: for unsafe casts that are implementation dependent.  For example, casting a Student to a Turtle: reinterpret\_cast<Turtle*>(&s).  Who knows what'll happen?
+\item const\_cast: used to add or remove ``constness' from something.  However, beware of ``const poisoning'' which may occur due to this, as you might set off a chain reaction of issues by using const casting.  We use const\_cast<int*>(p), where p was a const pointer to an integer.  
 \item Note that we would use const casting to removed the const from something that doesn't need to be const - for example, do not try removing the const of a const int.  You can, however, remove the const of a constant integer pointer.
-\item dynamic_cast: used to convert a subclass pointer to a superclass pointer.  We could use static_cast if we are sure that the conversion will work, but otherwise this is better.  If the conversion fails, it will be set to a nullptr.  We would do, for example, Text *pt = dynamic_cast<Text*>(pb);, where pb is a pointer to a Book.  Dynamic methods work only on classes w/ at least one virtual method, but that's kinda the same as saying it has to be done on a subclass.  
-\item We use this over static_cast in situations where we are worried about it failing, as dynamic_cast will fail gracefully.
+\item dynamic\_cast: used to convert a subclass pointer to a superclass pointer.  We could use static\_cast if we are sure that the conversion will work, but otherwise this is better.  If the conversion fails, it will be set to a nullptr.  We would do, for example, Text *pt = dynamic\_cast<Text*>(pb);, where pb is a pointer to a Book.  Dynamic methods work only on classes w/ at least one virtual method, but that's kinda the same as saying it has to be done on a subclass.  
+\item We use this over static\_cast in situations where we are worried about it failing, as dynamic\_cast will fail gracefully.
 \item Note that all these casting types will work on smart pointers.
 \item Of course, casting also works on references.  For example:
 \begin{lstlisting}

@@ -92,8 +92,8 @@
 \item (e)grep -> extended global regular expression print.  Identical to grep -e.
 \item Format is egrep [pattern] [filename].
 \item A pattern with no special characters (ie; test) will just print out all lines with that string.  No need for quotations.
-\item We can use a pattern like “word1|word2” to search for all lines with word1 and/or word2.
-\item We could extend this - “word(1|2)” would do the same as above.
+\item We can use a pattern like ``word1$|$word2'' to search for all lines with word1 and/or word2.
+\item We could extend this - “word(1$|$2)” would do the same as above.
 \item Something we could do is “[Ww]ord[12]” as well, to, say, detect both capital and lowercase, and track 1 or 2.
 \item \lbrack \^...\rbrack means not.
 \item ? means 0 or 1 of any character that is preceding it.
