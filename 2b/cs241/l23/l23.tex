@@ -1,0 +1,138 @@
+\documentclass[12pt]{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{hyperref} 
+\usepackage{pst-tree} 
+\usepackage{verbatim} 
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\graphicspath{{./}}
+\usepackage{courier}
+
+\lstset{language=C, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+\Large\textbf{CS 241, Lecture 23: Linkers}
+\end{center}
+
+Note everything in this lecture was already covered in my lecture 22 notes.  This is mostly rehashing/additions.
+
+\section{Warm Up Problem}
+Given the MIPS code:
+\begin{lstlisting}[mathescape, numbers=none, breaklines=true]
+lis $\$$1
+.word 0x1000
+lis $\$$2
+.word A
+A: jr $\$$2
+beq $\$$0, $\$$1, B
+B: jr $\$$31
+\end{lstlisting}
+what is the appropriate MERL file?
+
+Answer:
+\begin{lstlisting}[mathescape, numbers=none, breaklines=true]
+beq $\$$0, $\$$0, 2
+.word 0x30 ;file length in bytes
+.word 0x28 ;code length + header!!
+lis $\$$1
+.word 0x1000
+lis $\$$2
+.word A
+A: jr $\$$2
+beq $0, $1, B
+B: jr $\$$31
+.word 0x1 ;format code
+.word 0x18; where .word A is
+\end{lstlisting}
+
+\section{Loading}
+\begin{itemize}
+    \item Recall the point of loading was to put things in different addresses, instead of just starting everything at 0x0.
+    \item This requires two passes: one to record the size of hte file, where we start counting addresses at 0x0c instead of 0x0, and record the location of .word id instructions, and the second to output the header, MIPS machine code, and relocation table.
+    \item To sum up the algorithm (as I wrote this before):
+        \begin{itemize}
+            \item Start by reading in a MERL file.  Read one line to skip the cookie.
+            \item Store the end length of the MERL file into \lstinline[mathescape]{endMod}, store the code length - 12 into \lstinline[mathescape]{codeLen}, where we removed the header.
+            \item Store the free RAM into \lstinline[mathescape]{alpha}, based on \lstinline[mathescape]{codeLen}.  We assume this can be done with some function; this is not taught.
+            \item Loop through codeLen, and store \lstinline[mathescape]{read_line()} into \lstinline[mathescape]{MEM[alpha + i]}.
+            \item Now, from \lstinline[mathescape]{codeLen + 12} to \lstinline[mathescape]{endMod}, then store \lstinline[mathescape]{read_line} into a variable we call \lstinline[mathescape]{format}.
+            \item If \lstinline[mathescape]{format == 1} then the next line is something we have to add.  \lstinline[mathescape]{read_line()} again go forward by \lstinline[mathescape]{alpha} and back by the header len.
+            \item This gives us \lstinline[mathescape]{MEM[alpha + rel - 12] += alpha - 12}
+            \item If \lstinline[mathescape]{format != 1} then clearly something is wrong, and ERROR out.
+            \item Then, increment our counter for this while loop by 8 as we just read through 2 lines.
+        \end{itemize}
+\end{itemize}
+
+
+\section{Linkers}
+\begin{itemize}
+    \item We put a placeholder, 0x0, to indicate that we cannot run a program that relies on a linked file without that id value.
+    \subsection{External Symbol Reference(ESR)}
+        \item What \lstinline[mathescape]{.import} creates
+        \item An ESR entry contains two things: where a symbol is being used, and the name of the symbol
+        \item The format is:
+\begin{lstlisting}[mathescape, numbers=none, breaklines=true]
+0x11 ;Format code
+;location used
+;length of the name of the symbol
+;each ASCII char of the symbol
+\end{lstlisting}
+
+    \subsection{External Symbol Definition(ESD)}
+        \item The ESD follows a similar format:
+\begin{lstlisting}[mathescape, numbers=none, breaklines=true]
+0x05 ;Format code
+;address the symbol represents
+;length of the name of the symbol
+;each ASCII char of the symbol
+\end{lstlisting}
+
+\end{itemize}
+
+\section{Course Summary --- How do we write a compiler?}
+So$\dots$ what have we learned?  How \textbf{do} we write a compiler now?
+\begin{itemize}
+    \item First, we need to scan our code.
+        \begin{itemize}
+            \item Tokenizing is just regular languages.
+                \begin{itemize}
+                    \item DFAs, NFAs, $\epsilon$-NFAs
+                \end{itemize}
+            \item We use a simplified maximal munch algorithm to parse.
+        \end{itemize}
+    \item Then, we need to parse.  
+        \begin{itemize}
+            \item This needs a grammar!
+                \begin{itemize}
+                    \item CFGs
+                    \item This also points back to regular languages, as every CFG is a RegLang.
+                \end{itemize}
+            \item Remember LR1, LL1, LR0, and SLR1.  First and Follow.
+            \item Top-down and bottom-up.
+        \end{itemize}
+    \item Type/error check.
+        \begin{itemize}
+            \item See CS 245.  Inference rules$\dots$ are great.
+        \end{itemize}
+    \item Then, code generation.
+        \begin{itemize}
+            \item Stack management - register \$29 and \$30
+            \item Caller or callee when saving
+            \item Label collison
+        \end{itemize}
+    \item Assemble.
+    \item Linking and loading.
+\end{itemize}
+
+
+\end{document}
+

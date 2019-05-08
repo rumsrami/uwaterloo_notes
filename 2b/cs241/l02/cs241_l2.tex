@@ -1,0 +1,123 @@
+\documentclass[12pt]{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+\Large\textbf{CS 241, Lecture 2 - Characters and Machine Language}
+\end{center}
+
+\section{Characters}
+\begin{itemize}
+    \item ASCII:
+        \begin{itemize}
+            \item 0-31: control
+            \item 48-57: 0-9
+            \item 65-90: A-Z
+            \item 97-122: a-z
+            \item $|$A-a$| =$ 32
+        \end{itemize} 
+\end{itemize}
+
+\section{Bitwise Operations}
+\begin{itemize}
+    \item In C, we have bitwise operations.
+    \item \lstinline{~} (not) flips all bits.
+    \item \lstinline{&} (and) will give the AND of two binary strings.
+    \item \lstinline{|} (or) will give the OR of two binary strings.
+    \item \lstinline{^} (xor) will give the XOR of two binary strings.
+    \item \lstinline{>>} and \lstinline{<<} (right and left shift, respectively) will do a logical shift right and left by the given integer, respectively.  A left shift is equal to multiplying by 2.
+        \begin{itemize}
+            \item Logical shift: Always shift zeroes for both left and right.
+            \item Arithmetic shift: If left, shift zero.  If right, shift MSB.
+            \item We get undefined behaviour if we right shift a signed integer.  
+            \item For our case, we will ALWAYS use logical shifts!
+        \end{itemize} 
+\end{itemize}
+
+\section{Instructions}
+\begin{itemize}
+    \item Programs reside in the same place on the data they operate on - they are also data (von Neumann architecture).
+    \item Thus, we cannot really distinguish, without more information, whether a data is a program (set of instructions) or if it just data!
+    \item For this course, we will work with 32-bit MIPS.
+    \item Our MIPS CPU contains 32 registers, \$0, ... ,\$31, and hi, lo.
+    \item Our control unit contains our PC and instruction register (IR).
+    \item We have two memory registers - memory data register (MDR) and memory address register (MAR).
+    \item We also have an ALU.
+    \item We use a bus to transfer data from CPU to memory.
+    \item Wew have a few types of memory that we use in computers (from fastest to slowest):
+        \begin{itemize}
+            \item CPU/registers
+            \item L1 cache (SRAM)
+            \item L2 cache (SRAM)
+            \item RAM (DRAM)
+            \item disk
+            \item network memory
+        \end{itemize}
+    \item Each register can be represented in 5 bits.
+    \item The registers we get to control with MIPS are our 32 registers (and hi and lo).  Note some registers are special and we do not need to touch:
+        \begin{itemize}
+            \item \$0 is ALWAYS 0
+            \item \$31 is used for return addresses
+            \item \$30 is our stack pointer
+            \item \$29 are frame pointers
+        \end{itemize}
+    \item Note that in most MIPS standards, \$29 and \$30's roles are reversed.  Why?  Who knows.
+    \item MIPS takes instructions loaded from RAM and executes them.
+    \item To solve our earlier problem with confusing data and programs, we will state that anything with memory address 0 in RAM is an instruction.
+    \item After we execute an instruction, we go to the NEXT instruction labelled by our PC.
+    \item We use a program called a loader to put our program into memory, and then sets the PC to be the first address.
+    \item CPUs basically follow a fetch-execute cycle, in which the following occurs:
+    \begin{lstlisting}[mathescape, numbers=left]
+PC = 0
+while true do
+	IR = MEM[PC]
+	PC += 4
+	Decode and execute instruction in IR
+end while
+    \end{lstlisting}
+    \item Eventually some instruction will break out of the infinite loop.
+\end{itemize}
+
+\section{Adding, lis, and returning}
+\begin{itemize}
+    \item Let us write an example program that takes in registers \$8 and \$9 and stores it in \$3:
+        \begin{lstlisting}[mathescape, numbers=left, breaklines=true]
+; add $\$$3 $\$$8 $\$$9 is what we want - binary equiv. is 00011, 01000, 01001, respectively.
+; we see that our binary equivalent is 0000 00ss ssst tttt dddd d000 0010 0000
+; now let us insert our value, and get 0000 0001 0000 1001 0001 1000 0010 0000
+; so we thus reduce this to a 32-bit word in hexadecimal: 0x01091820
+.word 0x01091820
+.word 0x03e00008 ; jr $\$$31, return
+        \end{lstlisting}
+    \item Note we HAVE to jump to register \$31 to end our program - we do so with \lstinline[mathescape]{jr $\$$31}.
+    \item But this assumes you had values \textbf{in} the register - how do we put immediate values in registers?  We use the \lstinline[mathescape]{lis $\$$d} MIPS command. 
+    \item Note that \lstinline{lis} is \textbf{non-standard}, normally we would use \lstinline{addi} to add immediate values. 
+    \item This will place the next word, immediately after, into register \$d.  It will increment the PC by 4 and skip the next line as it is (usually) NOT an instruction.
+    \item Note this value is a two's complement integer.
+    \item Let us write a MIPS program that adds 11 and 13:
+    \begin{lstlisting}[mathescape, numbers=left]
+.word 0x00000814 ; lis $\$$1
+.word 0x0000000b ; ivalue 11
+.word 0x00001014 ; lis $\$$2
+.word 0x0000000d ; ivalue 13
+.word 0x00221820 ; add $\$$1 and $\$$2, store in $\$$3
+.word 0x03e00008 ; jr $\$$31
+    \end{lstlisting}
+\end{itemize}
+
+\section{Multiplication and Division}
+\begin{itemize}
+    \item We get a problem with multiplying and division - we may need more space when multiplying (ie: $2^{30} \times 2^{30} = 2^{60}$), and when dividing, we want the quotient and remainder!
+    \item For multiplication, we COMBINE the hi and lo registers to get a 64-bit register.  The most significant word is placed in hi, and least significant word in lo (most sig word is largest 4 bytes).
+    \item For division, we put the quotient \lstinline[mathescape]{$\$$s $\div$ $\$$t} in lo and the remainder \lstinline[mathescape]{$\$$s % $\$$t} in hi.
+    \item To access data from hi and lo, we use the \lstinline[mathescape]{mfhi $\$$d} and \lstinline[mathescape]{mflo $\$$d} instructions to move from the hi/lo register to the register we state.
+\end{itemize}
+
+\end{document}
+

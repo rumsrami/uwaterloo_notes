@@ -1,0 +1,599 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\section{Testing}
+\begin{itemize}
+\item Must do before you start coding!
+\item Not the same as debugging - we must first test before debugging.
+\item Testing cannot guarantee correctness - it can only prove wrongness.
+\item Test suites are used to show/test expected behaviour.
+\item The difficulty in debugging is that there is no real process to test every single program to make sure your program works.
+\item There's also a psychological barrier, as people don't like seeing their code not working.
+\item IDEALLY (not in this course, unfortunately), the developer and the tester should be DIFFERENT PEOPLE.
+\item Black box testing vs\. white box testing (black is test w/o knowing implementation, white is test specific parts).
+
+\item Human testing:
+\begin{itemize}
+\item Humans look over code and find flaws.
+\item One person should execute a program by hand to make sure the logic is correct.
+\item Typically this method only spots logic and syntax errors - stuff that is easily spotted.
+\item We don't have the ability to do this on assignments.
+\end{itemize}
+
+\item Machine testing:
+
+\begin{itemize}
+\item What we will do.
+\item Run the program using test cases (white and black).  The point of the dual due dates is to force you to do black box testing FIRST, then do white box testing after.
+\item There is "grey box" testing, which is like a hybrid of the two - w/ some knowledge of program implementation.
+\item We should always start with black, supplement with white.
+\item Note that we are not expected to test for invalid inputs, unless the problem states that you should consider said invalid input.
+
+\end{itemize}
+
+    
+\item Testing strategies:
+\begin{itemize}
+\item Functional testing: does the program execute correctly?
+\item Performance testing: is the program efficient (enough)?
+\item Regression testing: do new changes to the program break old test cases?  NEVER remove test cases - always just add more!
+\item Volume testing: can the program handle both small and large inputs?
+\end{itemize}
+
+\end{itemize}
+
+
+\section{Basics of C++}
+\begin{itemize}
+\item main is an int, as per C.
+\item std::cout (or just cout if you use namespace std) is our std. output.
+\item Use ``using namespace std;'' if you are planning on using just cout, endl, cin, etc.
+\item Like C, by default, main will return 0.
+\item Note that we can use bash's echo on C++ programs, so if we make our main return, say, 314, then ``echo \$?'' will return 314.
+\item We compile C++ using the command ``g++ -std=c++14 program.cc -o programname''.
+\item Note we are using C++14 - even though 17 is out, we're not using it for now.
+\item If we do not use a ``-o'', it will automatically compile to a file called ``a.out'', or the like.  It's more convenient to name our files when testing.
+\end{itemize}
+
+\section{I/O in C++}
+\begin{itemize}
+\item Include ``iostream''.
+\item We have three types of I/O streams:
+\item cout: printing to stdout.
+\item cin: recording from stdin.
+\item cerr: for printing to stderr.
+\item We use double chevrons to direct to cout or cin.
+\item << means ``put to''.  For example, ``cout << x'' will put x to cout to output.
+\item >> means ''get from''.  For example, ``cin >> x'' will put the value from cin to x.
+\item We can interpret the direction of the chevrons as the direction of the flow of information (prof's words, not mine).
+\item We can do something like ``cin >> x >> y'' to get two inputs, stored into x first, then y.  Think of it like ``cin >> x; cin >> y;''
+\item cin ignores whitespaces, and will stop at the first one.  So like with the previous example, input of ``3 0 5'' would give x = 3, y = 0.
+\item What happens if cin fails or ends?
+\item If a cin read fails, cin.fail() will return true.
+\item If eof is entered, cin.eof() and cin.fail() will both return true AFTER the attempted read fails.
+\item There is an implicit conversion from cin to bool.  cin is regarded as true if it completes successfully - we can simply say ``(cin)'' to see if the previous read was sucessful (true if successful).
+\item We can go even further beyond - ``if (!(cin >> x)) break;'' is a very easy way to break out of a cin loop.
+\item The ``>>'' and ``<<'' are also bit shift operators.  It depends what is on the left - cin or cout is the expected I/O behaviour, but if it is a number, it will cause a bitwise shift.
+\item We use ``cin.clear()'' to reset our cin stream.
+\item We use ``cin.ignore()'' to get our program to ignore the current value that was just inputted that is waiting - otherwise, that value will get stuck in the stream!  We must clear AND ignore.
+\end{itemize}
+
+\section{Hex and decimal manipulators}
+\begin{itemize}
+\item  We use \textless iomanip \textmore.
+\item The following code would print ``5109''
+\begin{lstlisting}
+int i = 5;
+int j = 190;
+cout << i << j << endl;
+\end{lstlisting}
+\item  We use ``setw'' to specify the minimum spaces for the next numeric or string value.i
+\item  The following code would print ``\_\_\_5\_\_109'' - four spaces for the 5, five spaces for the 109:
+\begin{lstlisting}
+cout<<setw(4)<<i<<setw(5)<<j<<endl
+\end{lstlisting}
+\item By default, C++ will print numberical values in decimal notation.
+\item If we want to print something in, say, hexadecimal notation, then we must redirect into it:
+\begin{lstlisting}
+cout<<95<<endl; //Prints in decimal
+cout<<hex<<95<<endl; //Prints in hexadecimal
+cout<<95<endl; //Prints in hexadecimal
+\end{lstlisting}
+\item As noted above, the effects of switching numerical formats will persist until you switch to another format!
+\end{itemize}
+
+\section{Strings in C++}
+\begin{itemize}
+\item C++ has much better support for strings than C does.
+\item Stings grow as needed in C++.  There is no need for manual dynamic memory management as you add or remove letters!
+\item It is also much easier to manipulate strings.  A simple ``s = ''hello'';'' is fine, there is no need to worry about null terminating. 
+\item String operations:
+\begin{itemize}
+\item =, != both work on strings as expected.
+\item <. <=, >, >= work on strings as expected (lexographic order).
+\item To get the length of a string, use ``s.length()''.  This will be like strlen, returning the length of the true string.
+\item To fetch individual characters, simply use ``s[n]'', where n is an integer.
+\item To concatanate strings, we can simply do ``s3 = s1 + s2;''.  ``s3 += s4;'' is also valid syntax.
+\item See the previous Spring course notes for more examples.
+\end{itemize}
+\item To use these operations, you must include the <string> library.  Note that string - the type - is built into std, but string MANIPULATIONS require the string library.  Yep.
+\item To declare a variable of type string, we would do something like the following:
+\begin{lstlisting}
+#include <string>
+using namespace std;
+int main() {
+    string s;
+    cin >> s; //read into s, skip leading whitespace, stop at next ws.  
+    //IOW, read a word
+    cout << s << endl;
+}
+\end{lstlisting}
+\item We note that cin would only get us individual words.  Short of jury-rigging some loop, we need something else to get multi-word strings.  We use ``getline(cin, s);'' to read EVERYTHING one enters into stdin until a newline (Enter) is given, and stores it into s.
+\end{itemize}
+
+\section{Reading from a file}
+\begin{itemize}
+\item We note that so far, we've only been reading from stdin.
+\item We use ifstream/ofstream to read/write from/to a file.
+\item We have to include the library ``fstream'' to do so.  It allows us to ``stream'' to stream from and to files - like how iostream lets us stream from stdin and stdout.
+\item We can see fstream in action, the code prints every word until we hit eof.
+\begin{lstlisting}
+#include<iostream>
+#include<fstream>
+using namespace std; //required for std::string, std::ifstream...
+int main() {
+    ifstream file{"suite.txt"};
+    string s;
+    while (file >> s) { //Read until we hit eof from file (suite.txt)
+        cout << s << endl;
+    }
+    //We don't have to close file, the scope of file will mean it will close automatically.
+}
+\end{lstlisting}
+\end{itemize}
+
+\section{String stream}
+\begin{itemize}
+\item Useful to build up a string, then output it.
+\item Requires the library sstream.
+\item We use ``ostringstream'' to write to a given string.
+\item We use ``istringstream'' to read from a given string.
+\item An example of us ``throwing'' values into our string stream can be shown:
+\begin{lstlisting}
+int main() {
+    ostringstream ss;
+    int low = 1;
+    int high = 1;
+    ss << "Enter a number between " << low << " and " << high << ":";
+    string s = ss.str();
+    cout << s << endl;
+    int input;
+    cin >> input;
+}
+\end{lstlisting}
+\item Let us make a program that reads in numbers.  Remember how in C, if you read a character instead of a number, things went to hell?  We'll try to resolve that in another method (you can do this with just cin, as above):
+\begin{lstlisting}
+int main() {
+    while (true) {
+        cout << "Enter a number:" << endl;
+        string s;
+        cin >> s;
+        istringstream ss{s};
+        if (ss >> n) break;
+        cout << "I said to only"; //...enter a number.  Loops back to top. 
+    }
+    cout << " You entered the number " << n << endl;
+}
+\end{lstlisting}
+\item Basically, ``ss >> n'' tries to convert ss to an int.  If it fails, it will return false.  If it works, it returns true.  Obviously we can't convert strings or chars to ints, so it'll fail for any non-int.
+\end{itemize}
+
+\section{Function predeclaration}
+\begin{itemize}
+\item Like C, there where be dependancy errors if you just make two functions that are dependent on each other.  
+\item You must declare the function before the dependent function  Otherwise, it won't properly compile!
+\item We can only DEFINE a function once, but DECLARE more than once (as of now).
+
+\end{itemize}
+
+\section{Pointers}
+\begin{itemize}
+\item Good news - they're the exact same as C pointers!  Bad news - they're the exact same as C pointers.  May references save my soul.
+\item Like C, C++ is pass by copy.  Passing a value like foo(n) and incrementing n in foo won't do anything to the original value of n.
+\item Remember aliasing, as it's the same behaviour here.
+\item Also remember that a pointer will point to the first element in an array, like C.
+\item The null pointer in C++ that we will use is ``nullptr''.  Don't use NULL, even though it is in C++.
+\item For example, to initalize a node struct, we would do something like ``Node n1 {5, nullptr}'' if we don't want it to be linked to any other node.  NOTE THAT FOR A STRUCT INIT, WE DO NOT NEED THE ``struct'' part!
+\item An old example, but to increment a value that is passed:
+\begin{lstlisting}
+using namespace std;
+void inc(int *n) {
+    ++(*n);
+}
+
+int main() {
+    int x = 5;
+    inc(&x);
+    cout << x << endl; //Prints 6
+}
+\end{lstlisting}
+\end{itemize}
+
+\section{Default function parameters}
+\begin{itemize}
+\item Consider the following bit of code:
+\begin{lstlisting}
+void printFile(string name = "test.txt") {
+    //Print the contents of file "name"
+}
+
+int main() {
+    printFile("test.txt");
+    printFile(); //These two lines of code will give the same output!
+}
+\end{lstlisting}
+\item Basically as it has a default value, not calling with an argument will default to whatever was set.
+\end{itemize}
+
+\section{Overloading}
+\begin{itemize}
+\item Basically Java's overloading.
+\item We can define a function more than once as long as the parameters are different.
+\item This makes sense if we think of it at a 251 level.  The machine code doesn't care what the function's names are, nor their parameters.  It just cares about how many and the type.
+\item Like Java, which function is called will depend on the arguments.  The compiler is smart enough.
+\item Consider, say, you pass the integer ``0'' to a function that is overloaded to a bool parameter and an int parameter.  By default, this will call the int function.  If you want a bool, pass a variable of type bool.
+\item Consider the following example:
+\begin{lstlisting}
+void f(int a, int b=1) {
+    //...
+}
+void f(int a){
+    //...
+}
+\end{lstlisting}
+\item What happens in the case above if we call f(5)?  Well, since BOTH cases are completely valid, the compiler may just outright refuse to run.  
+\item IOW, if you're confused, the compiler will also be confused, so long story short, don't write shitty code like this.
+\item Overloading is useful as we can reuse function names if the process is still the same, but it needs different arguments.
+\end{itemize}
+
+\section{Constants}
+\begin{itemize}
+\item What is the difference between something like:
+\begin{lstlisting}
+int n = 5;
+const int m = 5;
+\end{lstlisting}
+\item We can easily see that the difference is that n is mutable and stored in stack/global, m is immutable, and stored in read-only memory.
+\item As in C, make variables constant if needed.
+\item Consider the earlier example, where we initalied ``Node n1 = {5, nullptr};''.  If we say ''const Node n2 = n1;'', then now the values of n2 are immutable.  We can make it point to other Nodes though (need to doublecheck, but should be!).
+\item Recall constant interactions with pointers.  ``const int *p = &n;'' gives us a pointer that we can mutate what it points to, but NOT what it points at (so we can say p = &m, but NOT *p= 100).
+\item Typically, we read from right to left.  So ``int * const p = &n'' reads as ``p is a constant pointer to an int''.  The above reads as ``p is an pointer to an integer that is constant''.  We cannot change what it points to but we canchange the VALUE of what it points to with aliasing.
+\item Finally, ``const int * const p = &n'' is ''a pointer that is constant that points to an integer that is constant''.  We cannot change what p points to or the value of whawt it points to.
+\end{itemize}
+
+\section{References}
+\begin{itemize}
+\item C++ has another pointer-like type -- references.
+\item This is how something like ``cin >> x'' works.  It does NOT use a pointer.
+\item A reference is defined as 
+\item For example:
+\begin{lstlisting}
+int y = 10;
+int &x = y; //x is of type "reference to integer".  Functionally, it is the same as saying x points to y (identical to a pointer to y in a memory diagram)
+\end{lstlisting}
+\item We define x as an lvalue reference.
+\item An lvalue is any value that can be on the left side of an assignment.  A rvalue is any value that cannot be on the left side of an assignment.  For example, x is an lvalue, y is an lvalue, 10 is an rvalue, ``this is a string'' is an rvalue.  It's pretty obvious, tbh.
+\item We could say that the reference x to y is similar to saying ``int *const z = &y;''.  Basically, a reference cannot change what it points to, but we CAN change the value of what it points to.
+\item Consider changing the value of y through x:
+\begin{lstlisting}
+int y = 10;
+int &x = y;
+x = 999;
+cout << y << endl; //will print 999
+\end{lstlisting}
+\item Bascially, a reference will automatically dereference for you, if you still want to think of it like a pointer.  You could essentially define a reference as a pointer that automatically dereferences and cannot point at anything other than what it is initalized to (for now).
+\item There are some things that we should keep in mind regarding lvalue references:
+\begin{itemize}
+\item Do NOT leave a reference uninitalized.  It's like leaving a const pointer uninitalized.  We cannot just declare a reference (so no ``int &x;'').
+\item Do NOT initalize a reference with an rvalue.  It MUST be initalized with an lvalue (so no ``int &x = 5;'', this is invalid!).
+\item Do NOT create a pointer to a reference.  ``int &*x=...;'' would be invalid.  However, a reference TO a pointer is fine, so ``int *&x = ...;'' is fine.
+\item A reference to a reference is legal, but don't do it as it means something different (so avoid ``int &&x = ...;'') for now.
+\item An array of references is NOT allowed.
+\end{itemize}
+\item We can pass references as function parameters:
+\begin{lstlisting}
+void inc(int &val) {
+    val += 1;
+}
+
+int main() {
+    int x = 1;
+    inc(x); //This will be fine, as it'll essentially do int &val = x
+    cout << x << endl; //prints 2
+}
+\end{lstlisting}
+\item We can see a reference as a much safer pointer.
+\item A reference holds an address, so it's 8 bytes (???)
+\item Check to see which one is better for large data.
+\item (Mentioned in tutorial) we cannot call, say, f(5) if the function f is defined to accept only an integer reference.  We CAN however call g(5), if the function g is defined with parameters of a CONSTANT integer reference. This is as 5 is an rvalue, NOT a lvalue. 
+\item We have three main types of ``pass by'''s in C++ (at least so far): pass by copy/value (C behaviour), pass by reference, and pass by constant reference.
+\end{itemize}
+
+\section{Dynamic Memory}
+\begin{itemize}
+\item Similar to C in 136.
+\item In C, if we wanted to use memory that persisted outside of stack, we would allocate memory to the heap.  However, there is the issue of memory leaks, so you must free all heap memory.
+\item C++ follows the same concept, but the syntax differs.
+\item For example, we don't use malloc nor free.
+\item Example:
+\begin{lstlisting}
+struct Node {
+    int data;
+    Node *next;
+};
+
+Node *np = new Node;  //No need to call malloc - new will AUTOMATICALLY alloc memory.
+
+Node *myNodes = new Node [10]; //Creates an array of 10 Node structures.
+
+delete np;
+delete [] myNodes;
+\end{lstlisting}
+\item Make no mistake - we're doing the same idea of allocing memory in the heap.  We just don't have to manually malloc anymore.
+\item As such, we must still somehow ``free'' this memory, as it's heap memory.
+\item As a side note, most IDEs will NOT detect memory leaks (this is really obvious if you try it on something like VS and purposely make shitty code).  Always run your code on the student environment first to make sure it works!
+\item Delete/free heap memory with ``delete name''.  For an array, we simply use ``delete [] name;''.
+\end{itemize}
+
+\section{Returning by Value/Ptr/Reference}
+\begin{itemize}
+\item Consider the following three functions:
+\begin{lstlisting}
+Node getMeANode() { 
+    //Expensive, returns a copy of n.
+    Node n;
+    return n;
+}
+
+Node *getMeANode() { 
+    //Undefined behaviour; n will be erased after we pop the stack.  
+    //Reference points at something that may be overwritten after the stack is popped.
+    //Do not use.
+    Node n;
+    return &n;
+}
+
+Node *getMeANode() { 
+    //What we would probably use.  Returns a pointer to something stored in heap.
+    //Thus, the memory the pointer points at will persist post-stack-pop.  But we MUST FREE/DELETE.
+    Node *np = new Node;
+    return np;
+}
+\end{lstlisting}
+\end{itemize}
+
+\section{Operator overloading}
+\begin{itemize}
+\item Suppose we have the following structure:
+\begin{lstlisting}
+struct Vec {
+    int x, y;
+};
+
+...
+
+Vec v1{1. 2};
+Vec v2{3, 4};
+//Vec v3 = v1 + v2; //This doesn't compile, as + is defined for numbers and strings.  Unless...
+
+//We add above:
+Vec operator+(const Vec &v1, const Vec &v2) {
+    Vec v {v1.x + v2.x, v1.y + v2.y};
+    return v;
+}
+
+Vec v3 = v1+v2;  NOW this compiles.
+\end{lstlisting}
+\item Let's consider ANOTHER example:
+\begin{lstlisting}
+Vec operator*(const Vec &v1, const int k) {
+    return { k * v1.x, k * v1.y };
+}
+
+Vec operator*(const int k, const Vec &v1) {
+    return v1 * k;
+}
+
+Vec v1 = {1, 2};
+Vec v2 = 2 * v1; //Valid!
+Vec v3 = v1 * 3; //Valid!
+\end{lstlisting}
+\item Another example:
+\begin{lstlisting}
+struct Grade {
+    int theGrade;
+};
+
+int main() {
+    Grade g;
+    while (cin >> g) { //This won't work!
+        cout << g << endl; //This won't work!
+    }
+}
+\end{lstlisting}
+\item So how can we get this to work?  Consider the following:
+\begin{lstlisting}
+struct Grade {
+    int theGrade;
+};
+
+ostream & operator<<(ostream &os, const Grade &g) { 
+    //Think of cout << a << b - this is like (cout << a) << b -> 
+    //cout << b, so cout << a returns a REFERENCE to cout.
+    os << g.theGrade << "%";
+    return os; //Returns a reference to our output stream.
+}
+
+int main() {
+    Grade g;
+    while (cin >> g) { //This won't work!
+        cout << g << endl; //This will work now!
+    }
+}
+\end{lstlisting}
+\item We can do something similar for the /textmore /textmore operator:
+\begin{lstlisting}
+//Previous structure declaration omitted for simplicity.
+
+istream &operator>> (istream &in, const Grade &g) {
+    in >> g.theGrade;
+    if (g.theGrade < 0) g.theGrade = 0;
+    if (g.theGrade > 100) g.theGrade = 100;
+    return in;
+}
+
+int main() {
+    Grade g;
+    while (cin >> g) { //This will work!
+        cout << g << endl; //This will work now!
+    }
+}
+
+\end{lstlisting}
+\end{itemize}
+
+\section{Preprocessor}
+\begin{itemize}
+\item include
+\begin{itemize}
+\item ``#include ...''
+\item Recall that for standard libraries, just use #include <lib>.
+\item We can also include the full file path, like #include </.../.../lib>.
+\item For a non-standard library (anything you write), use #include "mylib".
+\item We cannot use an absolute/relative path for a non-standard library.  Place your library/file into the same directory as your cpp file (this isn't really invalid, but whatever...).
+\end{itemize}
+
+\item define
+\begin{itemize}
+\item ``#define VAR VALUE''
+\item Allows us to assign values pre-compliation.
+\end{itemize}
+
+\item define w/o any assigned value
+\begin{itemize}
+\item ``#define FLAG''
+\end{itemize}
+
+\item "Example:"
+\begin{lstlisting}
+#define BBOS 1
+#define IOS 2
+#define OS BBOS
+#if OS == BBOS 
+    long long int publickey;
+#elif OS == IOS
+    short int publickey;
+#endif
+\end{lstlisting}
+\item We can use defines to debug:
+\begin{lstlisting}
+#define X
+
+int main () {
+    cout << X << endll
+}
+\end{lstlisting}
+\item We could modify this by saying compiling with ``g++14 -DX = 15 <FILE> <COMPILE\_TO>''.
+\item We could debug something like double loops:
+\begin{lstlisting}
+#ifdef Debug1
+    //loop
+#endif
+#ifdev Debug2
+    loop
+#endif.
+\end{lstlisting}
+\item Call with ``g++ -DDebug1 -DDebug2 <FILE> <COMPILE\_TO>''
+\end{itemize}
+
+\section{Seperate compilation}
+\begin{itemize}
+\item Split your program into modules, where each module includes:
+\begin{itemize}
+\item An interface file (.h): type declarations, and the prototypes of functions.
+\item An implementation file (.cc): full details/definition for every function.
+\end{itemize}
+\item Recall that a decleration asserts existence, while a definition provides the full details and allocates space.
+\item An example of a module:
+\begin{lstlisting}
+//vector.h
+struct Vec {
+    int x;
+    int y;
+};
+
+Vec operator+(const Vec &v1, const Vec &v2);
+
+
+//vector.cc
+#include "vector.h"
+Vec operator+(const Vec &v1, const Vec &v2) {
+    //...
+}
+\end{lstlisting}
+\item To use:
+\begin{lstlisting}
+//main.cc
+
+#include "vector.h"
+
+int main() {
+    Vec v{1,2};
+    v = v+v;
+}
+\end{lstlisting}
+\item But how does C++ know to link these files together?
+\begin{lstlisting}
+#Seperately compile, do not link, do not build executable, produce an object file (.o):
+g++14 -c vector.cc
+g++14 -c main.cc
+
+#Produce an execuable, linking the object files, called ``name''.  Omitting the name and -o flag defaults to ''a.out''
+g++14 vector.o main.o -o ``name''
+\end{lstlisting}
+\item Remember to use extern if you are passing a global variable, which ensure that it is only declared, but not defined.
+\item We can declare multiple times, but not define.  A constant must be defined.
+\item We note the following example:
+\begin{lstlisting}
+//linalg.h
+#include "vector.h"
+
+//linalg.cc
+#include "vector.h"
+#include "linalg.h"
+
+//main.cc
+#include "vector.h"
+#include "linalg.h"
+\end{lstlisting}
+\item This will NOT compile.  This is as we call headers too many times, possibly causing duplicate variables and structures.
+\item To prevent files from being used more than once, we use #include guards as so.
+\item Note that this is not "#include guard", the very practice is called "#include" guards.  Fuck naming conventions.  This is NOT CODE.
+\begin{lstlisting}
+//vector.h
+//This is an example of an #include guard.
+#ifndef VEC\_H   //See if it is already defined.  If not, define it.  If it is defined, skip.
+#define VEC\_H
+#endif
+\end{lstlisting}
+\item You MUST include these, or else you will lose marks.
+\item Never put ``namespace std'' into a .h file.  This will compile, but will FORCE the client into using the ``namespace std'' convention, which they may not be using, as it's ``techincally'' bad style to use it in the case std changes or conflicts... but hey it's an intro C++ course, who cares?
+\end{itemize}
+
+\end{document}

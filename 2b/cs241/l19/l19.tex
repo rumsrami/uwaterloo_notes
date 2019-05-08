@@ -1,0 +1,36 @@
+\documentclass[12pt]{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{hyperref} 
+\usepackage{pst-tree} 
+\usepackage{verbatim} 
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\graphicspath{{./}}
+\usepackage{courier}
+
+\lstset{language=C, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large\textbf{CS 241, Lecture 19: Code Generation (Part Four)}
+\end{center}
+
+\section{Pointers}
+\begin{itemize}
+    \item So I apparently overstudied$\dots$ again.
+
+\subsection{Dereferencing}
+    \item For \lstinline[mathescape]{NULL}, we need to make sure that it points to a non-word-aligned address (so not divisible by 4, we use 0x1), so it will crash if we dereference it!
+\end{itemize}
+
+
+\end{document}
+

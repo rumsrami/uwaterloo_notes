@@ -1,0 +1,46 @@
+\documentclass[12pt]{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{hyperref} 
+\usepackage{pst-tree} 
+\usepackage{verbatim} 
+\usepackage{graphicx}
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\graphicspath{{./}}
+\usepackage{courier}
+
+\lstset{language=C, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+\Large\textbf{CS 241, Lecture 21: Optimization Continued and Heap Management}
+\end{center}
+
+\section{Optimization}
+Covered last time!
+
+\section{Heap Management}
+\begin{itemize}
+    \item How can we manage heap?
+    \item One way is to just set up a pointer to the beginning of memory, and another to the end.  Initalization is O(1), as is allocation, and we never delete$\dots$ but we get a ton of waste and we will run out of memory!
+    \item Another way is to use linked list of fixed size blocks.  This only works because we allow a single block of memory each time, where we keep track of hte memory in the free list and allocated from the free list if memory is requested.
+    \item The next way of doing it is variable sized blocks.  We again use a linked list, but here, our linked list will store a number of \emph{bytes}, where those bytes can be found in the next node.
+    \item When we init with this, we start with the entire heap being free.  Our linked list has one node, which is the size (1024 bytes, for example) and the starting address (0x4000, for example).
+    \item When we allocate, say, 50 bytes, we allocate \emph{54} bytes - the first 4 bytes are the size of the block (an integer) and the rest is the memory requested in bytes.  We return a pointer to the start of the 50 bytes.
+    \item Now, we have 970 bytes and 0x4036 as our address.
+    \item Repeat for 28 bytes.  We allocate 32 bytes, and return 0x4056 as our address pointer to the start of the 28 bytes.
+    \item How about freeing?  Let's say we free the 50 bytes first. Free chunks and add a linked list node to the free linked list.
+    \item We can merge adjacent memory blocks.  Note that 54 + 0x4000 = 0x4036, and so we can collapse the first two nodes in our linked list into a single node.
+        \item We have an issue with fragmentation though.  
+\end{itemize}
+
+
+\end{document}
+

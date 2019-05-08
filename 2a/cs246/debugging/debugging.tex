@@ -1,0 +1,47 @@
+\documentclass{article}
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\author{Clement Tsang}
+
+\begin{document}
+\section{Flags}
+\begin{itemize}
+\item ``pedantic'' flag forces you to use vanilla C++.
+\item ``Wall'' flag will give you a bunch of warnings if they appear.
+\end{itemize}
+
+\section{Defensive coding}
+\begin{itemize}
+\item We can put ``const'' on methods that only return (a la a getter).  This is useful as we can track if we accidentally tried modifying something with a constant method, which claims that the function will NOT modify any fields.
+\item Overloading versus overriding.  If you're doing one, make sure you don't accidentally do the other with with the override keyword (think virtual keyword!).
+\item Be careful with arrays!  Like C, you can do dumb shit with that and its elements.
+\item Same with Vectors, but you can instead use the ``.at()'' function to insure that you're checking only valid memory.
+\end{itemize}
+
+\section{Debugging problems}
+\begin{itemize}
+\item Print statements can only get you so far, but they do work.  Kinda.
+\item In Unix, remember that outputs are buffered.  If the program crashes, it may not output exactly where it crashed.  Instead, print to stderr.
+\item Note that file outputs are also buffered.  If you forget to close the file, whether it be shit code, crash, etc, the buffer may not be flushed, so your output files may be empty!
+\item This is because constant writing to a file is really inefficient.
+\item In Bash, typing in `script' will save your inputs/outputs to a file.
+\item Hate removing and adding in print statements?  What you can do is the `DDEBUG=true' flag (debug).
+\item Assertions:  Recall that we can use a string as an extra "condition" to give us information to what went wrong.
+\item Use the flag `DNDEBUG' to turn assertions off.
+\end{itemize}
+
+\section{GDB}
+\begin{itemize}
+\item Use the `-g' flag while compiling and linking.
+\item We can read in a sequence of commands from a file whilst compiling with gdb.  
+\end{itemize}
+
+\section{Valgrind}
+\begin{itemize}
+\item C++ is retarded sometimes.  When checking leaks, as long as ALL the lost catagories are 0, you're fine.
+\end{itemize}
+
+
+\end{document}

@@ -1,0 +1,128 @@
+\documentclass[12pt]{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+\Large\textbf{CS 241, Lecture 4 - Procedures}
+\end{center}
+
+\section{Example}
+Write an assembly program that takes in a value in reg 1 and stores the sum of the digits to reg 2.
+\begin{lstlisting}[mathescape, numbers=left, breaklines=true]
+lis $\$$3
+.word 10
+add $\$$4, $\$$1, $\$$0
+top:
+div $\$$4, $\$$3
+mfhi $\$$5
+mflo $\$$4
+add $\$$2, $\$$2, $\$$5
+bne $\$$4, $\$$0, top
+jr $\$$31
+\end{lstlisting}
+
+\section{Procedures}
+\begin{itemize}
+    \item Store old values in RAM when we call a function.
+    \item We use a stack pointer to keep track of where we track our registers.
+    \item Register 30 (29 in MIPS standard) keeps track of the bottom of your free RAM.  Note that this is assuming that our registers grow upward.
+    \item When we store a word with sw, we store at the beginning of the function at $-x*4(\$30)$, where $x >= 1$.  
+    \item After, update register 30/stack pointer by how many bytes you've stored by.
+    \item For example:
+        \begin{lstlisting}[mathescape, numbers=left, breaklines=true]
+f: 
+    sw $\$$1, -4($\$$30)
+    sw $\$$2  -8($\$$30)
+    lis $\$$2
+    .word $\$$8
+    sub $\$$30, $\$$30, $\$$2
+    ;rest of function
+    lis $\$$2
+    .word $\$$8
+    add $\$$30, $\$$30, $\$$2
+    lw $\$$2, -8($\$$30)
+    lw $\$$1, -4($\$$30)
+    jr $\$$31
+        \end{lstlisting}
+    \item Now how would we call function f?
+    \item We will violate our previous rule and overwrite register \$31!  First, we store it in RAM, then we use it as a scratch register and overwrite it with lis and immediate value 4.  
+    \item Then, we decrement \$30 by 4 and then jump with jalr to the register containing f.  The decrementing is the same idea as moving the stack pointer, to accomodate for us storing \$31 in RAM.
+    \item After the function call, we once again set \$31 to 4, increment \$30 by 4, then restore \$31 with lw.
+        \begin{lstlisting}[mathescape, numbers=left, breaklines=true]
+main:
+    lis $\$$8
+    .word f
+    sw $\$$31, -4($\$$30) ; push 31 to stack
+    lis 31 ; use 31 since it has been saved
+    .word 4
+    sub $\$$30, $\$$30, $\$$31
+    jalr $\$$8
+    lis $\$$31
+    .word 4
+    add $\$$30, $\$$30, $\$$31
+    lw $\$$31, -4($\$$30)
+    jr $\$$31
+        \end{lstlisting} 
+\end{itemize}
+
+\subsection{Parameters}
+\begin{itemize}
+    \item Typically, we store parameters in registers (though if you somehow, for some forsaken reason, have more parameters than registers, you CAN push them all to stack and then pop them from stack).
+    \item Documentation is very important - you must tell users what you are modifying.
+    \item For example, let's sum even numbers from 1 to N:
+        \begin{lstlisting}[mathescape, numbers=left, breaklines=true]
+; sumEven1ToN adds all even numbers from 1 to N, where N is even
+; Registers:
+; $\$$1 : Scratch register, will save previous value
+; $\$$2 : Input register, will save previous value
+; $\$$3 : Output register, will not save previous value
+sumEven1ToN:
+    sw $\$$1, -4($\$$30)
+    sw $\$$2, -8($\$$30)
+    lis $\$$1
+    .word 8
+    sub $\$$30, $\$$30, $\$$1
+
+    ; Actual function starts
+    add $\$$3 $\$$3 $\$$0  ; zero out $\$$3
+    lis $\$$1 ; set $\$$1 to imm. 2
+    .word 2
+    loopStart:
+        add $\$$3, $\$$3, $\$$2
+        sub $\$$2, $\$$2, $\$$1
+        bne $\$$2, $\$$0, loopStart
+    ; Actual function ends
+
+    lis $\$$1
+    .word 8
+    add $\$$30, $\$$30, $\$$1
+    lw $\$$2, -8($\$$30)
+    lw $\$$1, -4($\$$30)
+    jr $\$$31
+        \end{lstlisting} 
+\end{itemize}
+
+\section{Input and Output} 
+\begin{itemize}
+    \item To output, use sw to store words into location 0xffff000c.  The LSB will be printed.
+    \item To input, use lw to store words in location 0xffff0004.  LSB will be the next character from stdin.
+    \item For example:
+        \begin{lstlisting}[mathescape, numbers=left, breaklines=true]
+outputFn:
+    lis $\$$1
+    .word 0xffff000c
+    lis $\$$2
+    .word 67 ; the character C
+    sw $\$$2, 0($\$$1)
+        \end{lstlisting} 
+\end{itemize}
+
+
+\end{document}
+

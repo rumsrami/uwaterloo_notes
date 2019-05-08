@@ -1,0 +1,182 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\author{Clement Tsang}
+
+\begin{document}
+\section{Intro}
+
+\begin{itemize}
+\item We use computers to do two mechanisms:
+\begin{itemize}
+	\item Display information
+	\item Perform operations
+\end{itemize}
+
+\item We use the shell perform various tasks:
+\begin{itemize}
+	\item Read commands and interpret them
+	\item OS interface that gets the OS to do things.
+\end{itemize}
+
+\item There are 2 main approaches to shells: graphical shell (GUI) versus a command shell (CLI)
+\item Unix uses two types, both similar/equivalent:
+\begin{itemize}
+\item sh (ksh, bash) (what we use)
+\item csh (tcsh)
+\end{itemize}
+
+\end{itemize}
+
+
+\section{Linux File System Management}
+\begin{itemize}
+\item / is the root.
+\item Typical subdirectories of the root are:
+\begin{itemize}
+\item bin (bash, ls), etc (shell)
+\item home (username; files that we create on our account are typically stored here).
+\item usr (bin, include, share).
+\end{itemize}
+
+\item Due to Marmoset being fickle, make sure EVERY file ends with a newline!
+\item If using Vi/Vim, it should do this for you automatically, but double check to make sure it fits the project's requests.
+
+\item Absolute path: starts from root, NOT relative from somewhere else - thus, it will start from /, and isn't based on where it is called.  
+\item We note that the shell will mention your absolute path to your current directory.
+\item Relative path: starts from where it is called.
+\begin{itemize}
+\item . represents the current directory
+\item .. represents the parent directory OF the current directory
+\item \texttildelow/...  represents the user home directory
+\item \texttildelow userid/... represents userid's home directory
+\end{itemize}
+
+\item More useful bash commands:
+\begin{itemize}
+\item ls lists all files in current directory  We use the -a parameter to show hidden files.
+\item mkdir name creates a child directory at your cd
+\item rmdir name deletes a directory, BUT it must be empty.  
+\item rm deletes a file or directory.  Use the -r parameter (recursively deletes) to delete all child files, and the directory you specified.
+\item  ``*'' represents a  wildcard, we can use this to take EVERYTHING that matches before/after the wildcard character (ie: ls -al *.txt) (aka globbing)
+\item A slightly more difficult example is something like ``ls -al *f*.*''.  This would list ALL files, hidden or not, that have an ‘f’ and are files.
+\item  ``echo TEXT'' will output to the console whatever you put after it.  You could combine this with wildcard --- for example, “echo *.txt" would print out the file names of all files that are txt files.  Note “*.txt” would print out “*.txt”, NOT the files!
+\item  ``?'' represents wildcard matching for EACH character.  For example, let's say we had three folders - CS111, CS 232, CS 246.  Putting ``echo CS???'' in bash would output these three folders.  Basically, it must have the same number of ? as the number of characters you are searching for.
+\item  On a side note, if echo with ? fails to find anything, then it'll just print out the string you were searching for.  For example, ``echo CS?'' will output ``CS?'' if it finds nothing.
+\item  \lbrack xy\rbrack is a pattern for anything that starts with x or y.
+\item  CS\{246,1\} will look for any file that starts with CS and follows 246 OR 1.  The difference is that \lbrack \rbrack doesn't use commas, BUT this would be an issue with anything longer than one character.  {} requires commas, but works with multicharacter values.
+\item  cat \lbrack filename\rbrack displays the content of that file if it exists.  Use the -n argument to number the lines.
+\item  Every process we preform is connected to three streams:
+\item  stdin (standard input, defaults to the keyboard's input)
+\item  stdout (standard output, defaults to the screen)
+\item  stderr (default: screen)
+\item  Note that cat < file and cat file HAVE A DIFFERENCE.  The former is the shell opening it, the latter is cat opening it.  We can see this by opening two files at once.
+\item  We can simulate copying files by doing something like cat f1 > f2 - this is equal, in this case, to cp f1 f2.
+\item  Let's say we wanted to redirect the error message of catting a non-existant file.  We would do NOT cat fake.txt > res.txt, but rather cat fake.txt 2> res.txt.  Note the latter will still create res.txt, just not copy the error message to it.
+\item  Note that this type of redirection overwrites the file.
+\item  We can use head \-\# file and tail \-\# file to specify how many lines from the top or bottom (respectively) to print.
+\item  Piping:  It's literally the | thing.  Basically it allows us to use a command on the result of another command, say, head -4 test.txt | grep hello
+\item  ``uniq file.txt'' represents omitting adjacent repeating lines.
+\item  ``sort file.txt'' will output a sorted file.txt.
+
+\end{itemize}
+\end{itemize}
+
+
+\section{Pattern Matching}
+\begin{itemize}
+		
+\item (e)grep -> extended global regular expression print.  Identical to grep -e.
+\item Format is egrep [pattern] [filename].
+\item A pattern with no special characters (ie; test) will just print out all lines with that string.  No need for quotations.
+\item We can use a pattern like “word1|word2” to search for all lines with word1 and/or word2.
+\item We could extend this - “word(1|2)” would do the same as above.
+\item Something we could do is “[Ww]ord[12]” as well, to, say, detect both capital and lowercase, and track 1 or 2.
+\item \lbrack \^...\rbrack means not.
+\item ? means 0 or 1 of any character that is preceding it.
+\item * means 0 or more of any character preceding it.
+\item + means 1 or more of any character preceding it.
+\item . means any non-line-break character (ie: “.+” is any non-empty string).
+\item ...{1,10} would mean 1 to 10 occurances of the character preceding it.
+\item \^{}... (no brackets) means anything that starts with the following string.
+\item ...\$ matches the end of the line.
+\item ie: chmod a=rx filename
+\item ie: chmod a+x filename
+
+\end{itemize}
+
+
+\section{File Management}
+\begin{itemize}
+\item ls -l will give you a more detailed list of the files within the directory.
+\item In the first column, we get a 10 bit line showing what each file/directory can do.
+\item An example would be something like -rw-r--r--, or something of that sort.
+\begin{itemize}
+\item - or d means file or directory
+\item \-\-\-: rwx for user (read write execute)
+\item \-\-\-: rwx (group)
+\item \-\-\-: rwx (other)
+\end{itemize}
+\item In the second column, we get the owner of the file.
+\item Third column is the group.
+\item Fourth column is the size in bytes.
+\item Fifth is the last modified date.
+\item We use chmod to modify permissions:
+\item u, g, o, a for group.
+\item +, =, - to add, equate, or remove permissions.
+\item r, w, x, for read, write, execute.
+\item ie: chmod u-w filename
+\item We can define variables within the shell.  For example, x=1.
+\item “echo \${x}” will now print 1.
+\item In the shell, all these values are of type string.
+\item We could save directories: dir=\texttildelow/cs246, for example.
+\item ``PATH'' is a predefined variable that will tells Linux where to search for executables.
+\item A good practice is to use \${} to fetch the value of a variable.
+\item When we create a script, by default, it will NOT have executable permissions.  We can easily fix this with chmod.
+\item Remember to always include ``\#!/bin/bash'' to indicate that this is a bash script.
+\item We pass arguments to our scripts using \$1, \$2... 
+\item We can use redirect outputs that we do not want to show to the user to /dev/null.  It's like tmp.
+\item By default, if an operation is completed successfully, the command line returns 0.  If it fails, it returns /!/= 0.
+\item We can use this to our adavantage, and create if/else statements.
+\item ``\$?'' holds the status of the most recently executed command line.
+\item ``-eq'' checks for equality with left and right sides.
+\item \${\#} tells us the number of arguments.
+\item -ne is not equal.
+\item \$0 represents the command line itself.
+\item \textless \&2 represents stderr.
+\item exit x ends the program with code x - 0 represents it exited fine, a non-zero value means it failed to run properly.
+\item Bash if chain goes like this:
+\begin{lstlisting}
+if [cond]; then CMD
+elif [cond]; then CMD
+else CMD
+fi
+\end{lstlisting}
+\item Bash while loops go like this:
+\begin{lstlisting}
+while [condition]; do
+CMD
+For an accumulator, say, x:  x=\$((x+1))
+done
+\end{lstlisting}
+\item Bash for loops:
+\begin{lstlisting}
+for varname in listname do
+CMD
+done
+\end{lstlisting}
+\item Observe the following shell script:
+\begin{lstlisting}
+#!\bin\bash
+for name in *.cpp; do
+    mv ${name} ${name%cpp}cc
+done
+\end{lstlisting}
+\item \$\{name\%cpp\}cc produces the value name without the trailing ``cpp'', and then we replace it with ``cc''.
+\item We can create and use functions in scripts.
+\end{itemize}
+\end{document}
+

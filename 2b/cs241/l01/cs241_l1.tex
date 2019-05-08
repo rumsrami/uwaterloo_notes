@@ -1,0 +1,29 @@
+\documentclass[12pt]{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+\Large\textbf{CS 241, Lecture 1 - Introduction and Binary Encoding}
+\end{center}
+
+\section{Review}
+\begin{itemize}
+    \item A word is 4 bytes in 32-bit, 8 bytes in 64-bit.  We focus on 32-bit, so 4 byte words.
+    \item We use hexadecimal (base 16, 0-9, a-f) for ease of reading and use.
+    \item Each hexadecimal character is a nibble.
+    \item Prefix with 0x or subscript with 16.
+    \item ie: 10011101 $\rightarrow$ 0x9d
+    \item Dec $\rightarrow$ Bin - divide by 2 repeatedly.
+    \item We use twos complement over signed magnitude for signed numbers due to the latter's issue with double zeros and arithmetic problems.
+    \item ASCII is a 7-bit representation of a character.
+\end{itemize}
+
+
+\end{document}
+
