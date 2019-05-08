@@ -19,10 +19,10 @@ My personal collection of LaTeX notes from classes.  They may not be up to date.
 Many images within the files are taken from [Carmen Bruni's slides](https://cs.uwaterloo.ca/~cbruni/CS241Resources/index.php).
 
 - #### MIPS
-    - [Introduction and Binary Encoding](./2b/cs241/l01/l1.pdf)
-    - [Characters and Machine Language](./2b/cs241/l02/l2.pdf)
-    - [More on Machine Language](./2b/cs241/l03/l3.pdf)
-    - [Procedures](./2b/cs241/l04/l4.pdf)
+    - [Introduction and Binary Encoding](./2b/cs241/l01/cs241_l1.pdf)
+    - [Characters and Machine Language](./2b/cs241/l02/cs241_l2.pdf)
+    - [More on Machine Language](./2b/cs241/l03/cs241_l3.pdf)
+    - [Procedures](./2b/cs241/l04/cs241_l4.pdf)
 
 - #### Assembler, Formal Languages, ε-NFAs/NFAs/DFAs, CFGs
     - [Assemblers and Intro to Formal Languages](./2b/cs241/l05/l5.pdf)
