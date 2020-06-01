@@ -1,0 +1,83 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 6: Machine Learning}
+\end{center}
+
+\section{Introduction}
+\begin{itemize}
+    \item Some applications:
+        \begin{itemize}
+            \item Medical diagnosis
+            \item Spam filtering
+            \item Facial recognition
+            \item Speech understanding
+            \item Handwriting recognition
+        \end{itemize}
+    \item Learning is the ability of an agent to improve its performance on future tasks based on experience.
+    \item So the things we want an agent to do are to do more (expand range of behaviours), do things better (improve accuracy), and do things faster.
+    \item Why learn over just hardcoding?
+        \begin{itemize}
+            \item There may be situations which cannot be anticipated.
+            \item Situations may change over time which cannot be anticipated.
+            \item Sometimes, some solutions just can't be programmed --- how do you program image recognition, for example?
+        \end{itemize}
+    \item Any learning problem consists of these parts:
+        \begin{itemize}
+            \item The problem/task
+            \item Experience/data that we are using to improve the performance of our agent
+            \item Background knowledge/bias (make assumptions about the world/task)
+            \item Measure of improvement --- how do we know if we are doing better/worse?
+        \end{itemize}
+    \item Types of learning:
+        \begin{itemize}
+            \item Supervised learning --- given input features, target features, and training examples, predict the value of the target features for new examples given their values on the input features.
+            \item Unsupervised learning --- learning classifications when the examples do not have the targets defined.
+            \item Reinforcement learning --- learning what to do based on rewards and punishments.
+        \end{itemize}
+    \item Let us focus on two types of supervised learning problems:
+        \begin{enumerate}
+            \item Classification --- target features are discrete (ie: is the weather tomorrow sunny, cloudy, or rainy).
+            \item Regression --- target features are continuous (ie: tomorrow's temperature).
+        \end{enumerate}
+\end{itemize}
+
+\section{Supervised Learning}
+\begin{itemize}
+    \item Given training examples of the form $(x, f(x))$, we want to return a function $h$ (hypothesis) that approximates $f$.
+    \item This does assume that some true function $f(x)$ exists; but during training we never get to actually see $f$ (otherwise we would just use it).
+    \item We can see learning as a search problem if we see it as looking for one best hypothesis given a hypothesis ``space''.
+    \item The search space is often too large for a systematic search, so most ML techniques are some form of a local search.
+    \item The goal of ML is to find a hypothesis that can predict unseen examples correctly.  If it can do so well, then we say it generalizes well.
+    \item How can we choose a hypothesis that generalizes well?
+    \item Occam's razor --- assume the simplest hypothesis is the best.
+    \item Cross-validation --- use a test set later to validate your hypothesis after using the training set on it.
+    \item There is often a trade-off between complex hypotheses that fit the training data better, and simpler hypotheses that generalize better but fit worse.
+    \item The bias-variance trade-off --- error is at its highest when the model is too complex (bias low, variance high) OR if it is too low (bias high, variance low) (so a U shape).  We want to find a sweet spot in the middle.
+    \item The bias is about the effect of the hypothesis on how well we can fit the data.
+    \item A hypothesis with high bias will be too simplistic, have too few degrees of freedom, assumes too much, and does not fit the training data well.
+    \item If there is too high bias, it cannot use the training data well.
+    \item Meanwhile, the variance is about how much the learned hypothesis varies given different training data.
+    \item A hypothesis with high variance has many degrees of freedom, is very flexible, fits the training data very well, and is very sensitive --- small changes in the training data can cause the hypothesis to change a lot.
+    \item This also means that it cannot adapt to test data; it is overfitted to training data and cannot generalize.
+\end{itemize}
+
+\end{document}

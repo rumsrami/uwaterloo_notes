@@ -1,0 +1,114 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 4: Constrained Satisfaction Problems (CSP)}
+\end{center}
+
+\section{Introduction to CSPs}
+\begin{itemize}
+    \item What is the difference between a CSP to a normal search problem?
+    \item A typical search algorithm is unaware of the internal structure of states --- it's like if it treats each state as some black box, only knowing how to generate successors and testing whether the state is a goal!
+    \item For example, the four queens example --- a typical SA cannot understand that adding two queens beside each other is an instant failure.
+    \item So, knowing the internal structure of the states can help design a smarter algorithm.
+    \item Currently, the search algorithm can only understand ``this is not the goal state, keep going'' --- we can improve it to recognize dead ends and allow for immediate backtracking.
+    \item Each state contains:
+        \begin{itemize}
+            \item A set $X = \{X_1, X_2, \dots, X_n\}$ of variables.
+            \item A set $D$ of domains.
+            \item A set $C$ of constraints.
+        \end{itemize}
+    \item A solution is an assignment of values to all variables that satisfy all the constraints.
+    \item For example, for the 4Q problem:
+        \begin{itemize}
+            \item Variables --- we assume that exactly one queen is in each column; this is obvious as fitting two queens in a column would instantly fail.  This also simplifies our problem.
+            \item Thus, define four variables, $X_0, X_1, X_2, X_3$.  $X_i$ represents the row position of the queen in column $i$, $i \in [0, 3]$.
+            \item Define our domain as $D_i = {0, 1, 2, 3}$ for each $X_i$.
+            \item Define our constraints as no two queens can be in the same row or diagonal.  Logically, we define it as:
+                \begin{align*}
+                \forall i \forall j (i \neq j) \rightarrow (
+                    (X_i \neq X_j) \wedge 
+                    (|X_i - X_j| \neq |i - j|)
+                )
+                \end{align*}
+        \end{itemize}
+\end{itemize}
+
+\section{Solving a CSP}
+\subsection{Backtracking Search}
+\begin{itemize}
+    \item Let us design a backtracking solution for the 4Q problem.
+    \item We will assume we place queens from left to right.  We also assume we ensure the constraints are satisfied.
+    \item Our initial state is an empty board.  Our goal state is 4 queens on the board with none attacking another.
+    \item Our successor function is adding a queen to the leftmost empty column s.t. it is not attacked by another existing queen.
+    \item This is similar to the typical Sudoku backtracking solution.
+    \item This search tree is a form of DFS, but with a check to stop if we hit a dead end!
+\end{itemize}
+
+\subsection{Arc-Consistency}
+\begin{itemize}
+    \item Suppose we started the 4Q problem with $x_0 = 0$.  $x_2 = 1$ and $x_2 = 3$ do not lead to a solution, ever!
+    \item We can show our constraints for the problem in a constraint network/graph.
+        \begin{itemize}
+            \item We have circular nodes to represent variables.
+            \item We have (undirected) arcs connecting the variables to constraints; the constraints are represented by rectangular nodes.
+            \item In some graphs, we combine constraints together to be convenient.
+            \item We define the number of variables required for a constraint as the arity.  For example, in the 4Q problem, we have only binary constraints.
+            \item We can typically just use binary constraints.  Why not unary or higher arity constraints?
+                \begin{itemize}
+                    \item Unary just means ``allow some things and disallow all that are not this thing'' --- so we can just ``preprocess'' and eliminate these values and thus, no need to mention the unary constraint!
+                    \item Any constraint of arity $> 2$ can be decomposed to a binary constraint.
+                \end{itemize}
+            \item We define an arc $\langle X, c(X, Y) \rangle$ as \textbf{arc-consistent} iff $\forall v \in D_X \exists w \in D_Y : (v, w)$ satisfies the constraint $c(X, Y)$.
+            \item For example, given $D_X = \{1, 2\}, D_Y = \{1, 2, 3\}$, then $X$ is arc-consistent with the constraints of $X < Y$, while for $D_X = \{1, 2\}$ and $D_Y = \{1, 2\}$, then $X$ is not arc-consistent with the same constraints.
+            \item Note that arc-consistency is not symmetric.
+        \end{itemize}
+    \item AC-3 Arc Consistency Algorithm:
+\begin{lstlisting}
+def ac3():
+    put every arc in the set S
+    while S is not empty do:
+        select and remove <X, c(X, Y)> from S
+        remove every value in D_X 
+            that does not have a value in
+            D_Y that satisfies the constraint c(X,Y)
+        if D_X was reduced:
+            if D_X is empty:
+                return False
+            for every Z not equal to Y:
+                add <Z, c`(Z, X)> to S
+    return True
+\end{lstlisting}
+        \begin{itemize}
+            \item An algorithm used for the solution of CSPs (arc consistency).
+            \item What happens when we remove a value from a domain in regards to arc-consistency?  It's possible that by doing so, we have invalidated a formerly arc-consistent arc!
+            \item Does the order in which arcs are considered matter?  Nope.
+            \item There are three possible outcomes of the AC-3 algorithm:
+                \begin{enumerate}
+                    \item If the domain of a variable is empty, no solution exists.
+                    \item If every domain has exactly one value left, then we found a unique solution.
+                    \item Every domain has at least one value left, and at least one domain has multiple values left.  In this case, we don't know if there are multiple solutions, no solution, a unique solution, etc.  As such, AC-3 fails to give a definite answer here.
+                \end{enumerate}
+            \item Is AC-3 guaranteed to terminate?  Yes.
+            \item The runtime of AC-3 is $O(cd^3)$.  There are $n$ variables, size of each domain is $\leq d$ with $c$ binary constraints.  The $AC$ check takes $O(d^2)$.
+        \end{itemize}
+\end{itemize}
+
+\end{document}

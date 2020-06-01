@@ -1,0 +1,340 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=c, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Module 2}
+\end{center}
+
+Note like, all of the rest of module 2 before is missing since my dumbass wiped my drive by accident.
+
+\section{Flaws, Faults, and Failures}
+\begin{itemize}
+    \item Basically just how flaws are problems, faults are potential problems, failures are occuring problems.
+    \item Unintentional vs intentional security flaws.
+\end{itemize}
+
+\section{Unintentional Security Flaws}
+
+\subsection{Integer Overflows}
+\begin{itemize}
+    \item The problem is that integers can only represent to a limit (as are other numerical types).
+    \item One common issue is an unsigned integer wrapping into the wrong sign with a huge value!
+    \item Or, casting an unsigned integer into a signed one!
+    \item An attacker can exploit this and pass in values that will trigger overflows that may bypass checks or cause undefined behaviour.
+    \item For example --- let's say you pass in a signed int as an argument.  The function you pass the value in takes in a signed char.  Then you could theoretically overflow it by using a value $< -128$ or $> 127$!  This could trick some boundary checks, for example:
+\begin{lstlisting}
+void printchar (signed char i) {
+  char *data = "sspppp";
+  char size = strlen (data);
+  if (i > size - 3) {
+	fprintf(stderr, "index %d not allowed\n", i);
+	return;
+  }
+  printf("i = %d, answer: %c\n\n", i, data[2+i]);
+}
+
+int main (int argc, char **argv) {
+  int index;
+
+  if (argc != 2) {
+    fprintf(stderr, "Usage: %s <index>\n",argv[0]); exit(1);
+  }
+  index = atoi(argv[1]);
+  if (index < 0) {
+	fprintf(stderr, "index %d not allowed\n", index);
+	exit(1);
+  }
+
+  printf("Requested index = %d\n", index);
+  printchar(index);
+}
+\end{lstlisting}
+    \item This code would leak its ``secret'' key for a value of 255, for example --- as it's seen as ``-1'' by the \lstinline{printchar} function!
+\end{itemize}
+
+\subsection{String Formatting Vulnerabilities}
+\begin{itemize}
+    \item Unfiltered user input might be used as a formatted string\dots and this can be really bad!
+    \item For example, using \lstinline{printf(buffer)} rather than \lstinline{printf("%s", buffer)}!
+    \item It goes without saying how that first case could be really bad --- it may print things that are just lying on the stack!
+    \item Or perhaps something like \lstinline{printf("%s%s%s%s")} --- this might just crash stuff hard.
+    \item \lstinline{"%x"} will dump parts of the stack\dots or even better, \lstinline{"%n"} will \emph{write} to an address on the stack\dots
+\end{itemize}
+
+\subsection{Incomplete Mediation}
+\begin{itemize}
+    \item Sometimes, we don't trust what users type in.
+    \item For example, maybe they included an extra digit in a form, or a malformed email address using a pound sign rather than an @ sign.
+    \item The application needs to ensure what the user inputs is meaningfull and not incorrect --- this is called mediation.
+    \item \emph{Incomplete} mediation is when the application accepts data that is incorrect --- for example, bad sanitization can causes cases of XSS!
+    \item In some cases, this is hard to avoid --- for example, how do we know if a user's input phone number is a typo or intentional?
+    \item Most of the time, applications will focus on catching entries that are obviously wrong --- for example, if someone swaps the date and month fields and passes in the 31st month, then clearly we can inform the user.
+    \item We also need to ensure that any user-supplied inputs are within values that are safe --- for example, we shouldn't use a user input if it causes a buffer overflow, or an SQL injection!
+    \item As we mentioned before, XSS (cross site scripting) can be a very common example of this going horribly wrong.
+    \item Many websites have forms that do client-side mediation --- then code will validate your data before you submit it.
+    \item But what if a user turns off JS?  Edits the form right before submitting it?  Connects to the server manually?  Modifying the client-side state?  Then client-side mediation fails!
+    \item For example, what if a store keeps the unit price for storing a user's order in the client side --- and the user changes the value before submitting the form?
+    \item You should \emph{also} do server-side mediation, regardless!
+    \item Assume the client has mucked something up; always check values of all your fields, assert the client has not modified the data in any unallowed way!
+\end{itemize}
+
+\subsection{TOCTTOU}
+\begin{itemize}
+    \item TOCTTOU --- time-of-check to time-of-use.
+    \item This is usually known as a race condition error.
+    \item For example, say a user requests the system to perform an action.  The system then verifies the user can do this action.  Then the system does the action.
+    \item But what if the state changes halfway through the 2nd and 3rd step, and it is not an atomic action?
+    \item What could happen in setuid, which runs with SU privileges, is that an attacker could make a symlink between one file and to a file they owned, get themselves checked, then between the check and open actions, change the link to point to the \lstinline{/etc/passwd} file.  Oops!
+    \item In other words, it didn't check if the user actually opened the file that was checked --- it only cared that the file name checked matched the file name opened!
+    \item The main way to prevent this is to check the request and the final action and see there is no mismatch.  Locks can also be used to ensure the requested object cannot change.  Lastly, acting on the object itself ---- the file handle directly --- is better than through something that may be indirectly changed (operating on the file names, for example).
+\end{itemize}
+
+\section{Malicious Code}
+\begin{itemize}
+    \item Types of malware:
+        \begin{itemize}
+            \item Viruses: malicious code that adds itself to benign programs/files; contains code to spread and attack and are usually activated by users.
+            \item Worms: malicious code that can spread with little to no user interaction.
+            \item Trojans: malicious code hidden in software that seems to be innocent.
+            \item Logic bombs: malicious code that hides until a condition is triggered (ie: time bomb triggers at a specific time).
+        \end{itemize}
+\end{itemize}
+
+\subsection{Viruses}
+\begin{itemize}
+    \item A virus infects files that can contain executable code or programs.
+    \item Thus, it spreads when the file is executed/opened.
+    \item The virus ``infects'' a file by adding code/macros that will execute at the start of the target's program code.
+    \item As mentioned, usually contains code to spread and attack.
+    \item The payload, or what it uses to attack, will usually do some harm to the infected machine\dots usually something bad.
+    \item So how do we spot viruses?
+    \item When?  We should scan when we add files, and from time to time, we should check to ensure we didn't miss anything.
+    \item But how?  We can try to check by signature or behaviour.
+    \item This is actually an undecidable problem --- there is no ideal solution!
+    \item So assume there is an AV $V$ that is perfect.  Then, one could write a program, $P^*$, which will run $V(P^*)$, then it can just exit.  Otherwise, it can just infect.
+    \item In other words, then if $V(P^*)$ is true, then it thought it was a virus, but then it just exits, which means it actually didn't have any malicious behaviour.
+    \item And if it is false, then $V$ thought it wasn't a virus, but then it will execute its malicious code --- thus it actually \emph{was} a virus!
+    \item A way of doing this is to just encrypt most of the virus code --- the virus code will actually start with a decryption routine to decrypt the rest of the virus.
+    \item Another way of hiding is using instructions that are equivalent to other instructions but different enough, or padding with NOPs.  While this would be mostly easy to defeat, the idea of adding enough variations makes scanning slower and harder.
+    \item Behaviour-based systems look for specific patterns of behaviour rather than only a signature.  Furthermore, they might run code in a sandbox first.
+    \item Scanners can have two types of errors: false positives or false negatives.
+    \item False positives are potentially even worse --- they may lead to users ignoring warnings, or outright disabling the system!
+    \item Base rate fallacy --- it may seem like there are more false positives then actual correct detections! 
+\end{itemize}
+
+\subsection{Worms}
+\begin{itemize}
+    \item First worm was the Morris worm, which would try to infect systems in three ways:
+        \begin{enumerate}
+            \item Exploit a buffer overflow in the ``finger'' daemon.
+            \item Use a backdoor left in the ``sendmail'' daemon.
+            \item Try a dictionary attack against local users' passwords, and if successful, spread to other machines. 
+        \end{enumerate}
+    \item The Code Red worm exploited a buffer overflow in the MS IIS web server for a patch.
+    \item Slammer performed a DoS attack by exploiting a buffer overflow in MS's SQL Server.
+    \item Conficker was a worm that had multiple variants and would use infected machines as part of a botnet (stopped by generating and sinkholing appropriate domains).
+    \item Stuxnet was allegedly created by US and Israeli intelligence agencies, and would target Iranian uranium enrichment centrifuges.
+        \begin{itemize}
+            \item A very sophisticated worm; had to be installed through air-gapped systems via USBs.
+            \item It was a very stealthy and targeted worm; would hide and only unleash its payload if the centrifuges were being used.
+        \end{itemize}
+\end{itemize}
+
+\subsection{IoT Malware}
+\begin{itemize}
+    \item With more and more things connecting to the internet, this means there are more and more things that could be targeted or affected by malware (directly or indirectly).
+    \item Furthermore, the devices themselves are often created with security not in mind, and thus easily attacked.
+    \item For example, Mirai used IoT appliances as part of a botnet.
+\end{itemize}
+
+\subsection{Trojan Horses}
+\begin{itemize}
+    \item Trojan horses gain control by getting the user to run code; usually this is code that the user wanted to run.
+    \item Beyond obvious examples (like malicious programs overall), an example is scareware --- they may pretend to be a virus scanner and claim that a system is infected!
+\end{itemize}
+
+\subsection{Ransomware}
+\begin{itemize}
+    \item Demands a ransom to restore some hostage resource (usually stuff like decrypting encrypted files).
+    \item Most recent big example was WannaCry, which exploited a Windows SMB vuln that was actually known for a while by the NSA.
+\end{itemize}
+
+\subsection{Logic Bombs}
+\begin{itemize}
+    \item Usually the trigger will be something that the creator can affect in some way --- that is.
+\end{itemize}
+
+\subsection{Spotting Trojan Horses and Logic Bombs}
+\begin{itemize}
+    \item Spotting these is really hard, just due to how they work.
+    \item One way of dealing with them is just mitigating the damage they can do.
+\end{itemize}
+
+\subsection{Web Bugs}
+\begin{itemize}
+    \item Usually some object that your browser will fetch (ie: an image that's small).  This will mean your browser reveals information about you --- IP, contents of cookies, any personal information the site has.
+    \item But why are these malicious?  It's mostly an issue of \emph{privacy} --- the web bug instructs your browser to work in a way that you might not have expected.
+    \item One could argue this is like a BO attack instructing your browser to behave in a way that you may not expect in terms of security.
+\end{itemize}
+
+\subsection{Back Doors}
+\begin{itemize}
+    \item A set of ways to bypass normal auth. mechanisms that allow access to the system to anyone who knows about it.
+    \item They might be left in for a variety of reasons:
+        \begin{itemize}
+            \item Forgot to remove them
+            \item Left for testing
+            \item Left for maintenance
+            \item Intentionally left in for legal reasons
+            \item Intentionally left in for malicious reasons
+        \end{itemize}
+\end{itemize}
+
+\subsection{Salami Attacks}
+\begin{itemize}
+    \item An attack made of many smaller, seemingly inconsequential attacks that accumulate.
+    \item Done so it is harder to detect --- maybe they skim a few cents off a transaction, clerks slightly overcharging customers, etc.
+\end{itemize}
+
+\subsection{Privilege Escalation}
+\begin{itemize}
+    \item Most systems have differing levels of privilege for different users.
+    \item This attack allows an unintended user to get higher access.
+    \item This can be done by exploiting a program that has higher access privileges to execute what the attacker wants.
+    \item Another way to do it is tricking the system to believe the attacker is a legitimate higher-privileged user.
+\end{itemize}
+
+\subsection{Rootkits}
+\begin{itemize}
+    \item Contains two parts --- one to gain unauthorized root/admin higher-privileges and then tries to hide itself.
+    \item They may hide themselves by modifying commands like \lstinline{ls} to not report themselves, modify the kernel so that user programs cannot see the files, hide any log messages, etc.
+    \item A famous rootkit was the Sony XCP rootkit that Sony audio CDs came as ``copy protection''.
+    \item The CD contained an \lstinline{autorun.exe} file that would automatically execute and install a rootkit.
+    \item It tried to make it such that any process that tried to read an XCP-protected CD would get garbled output.
+    \item Then they put out an uninstaller that left a backdoor.
+\end{itemize}
+
+\subsection{Keystroke logging}
+\begin{itemize}
+    \item Almost all of your information comes from the keyboard.
+    \item Thus, a keyboard logger could easily keep track of data like credentials or private information.
+    \item In some cases, people intentionally install things that do log keys, and it comes down to trust to ensure the information isn't sent elsewhere.
+\end{itemize}
+
+\subsection{Interface Illusions}
+\begin{itemize}
+    \item Things that make it so that what you see is not what is actually occurring on the screen.
+    \item An example is clickjacking in browers.
+    \item The Conficker worm would change the ``run program'' icon and text to the one that you used to open the folder and view files, baiting users into clicking the wrong entry and running the malware.
+\end{itemize}
+
+
+\subsection{Phishing}
+\begin{itemize}
+    \item Really, an example of an interface illusion.
+    \item For example, make a fake Paypal website.
+\end{itemize}
+
+\subsection{MITM}
+\begin{itemize}
+    \item Keyloggers, interface illusions, and phishing are examples of MITM.
+    \item You're communicating with something else in the middle of the system you're think you're actually communicating to.
+    \item The user will think nothing is wrong as MITM will intercept the communication and still pass it to the intended party, but now they are privy to the details.
+\end{itemize}
+
+\section{Non-malicious Flaws}
+\begin{itemize}
+    \item One way a non-malicious flaw can be exploited is via covert channels.  An attacker creates a capability to transfer information that should not be transferred via that channel.
+    \item For example, hiding sensitive data within less sensitive data (ie: steganography).
+    \item Another is side channels.  Eve can watch how Alice's computer behaves while processing sensitive data.
+    \item Two examples are reflections and cache-timing.
+    \item Reflections is literally using a reflecting surface to get information.  Like a mirror.  Or glasses.  Yes, this is exactly as it says it is.
+    \item Cache-timing side channel exploits are things like Spectre and Meltdown --- abuse how processors use cache access to let a process learn data about another that should not be shared!
+    \item Some other potential attack vectors:
+        \begin{itemize}
+            \item Bandwidth consumption
+            \item Timing computations
+            \item Electromagnetic emissions
+            \item Sound emissions
+            \item Power consumption
+            \item Differential power/fault analysis
+        \end{itemize}
+\end{itemize}
+
+\section{Controls Against Security Flaws}
+\begin{itemize}
+    \item So\dots given all these threats, what can we even do?
+    \item Security should be considered \emph{in all stages of the software development lifecycle}.
+    \item How can we design programs so they are less likely to have security flaws?  Some things include:
+        \begin{itemize}
+            \item Modularity:
+                \begin{itemize}
+                    \item Break problem into smaller modules responsible for smaller subtasks.
+                    \item This means it is easier to test, reuse, maintain, analyze, etc.
+                    \item Have low coupling and high cohesion.
+                \end{itemize}
+            \item Encapsulation
+                \begin{itemize}
+                    \item Make modules self-contained and share information only as necessary.
+                    \item A developer of a module should not need to know how another one is created.
+                \end{itemize}
+            \item Information hiding
+                \begin{itemize}
+                    \item Internals of the module should not be visible at all to the other modules.
+                    \item Prevents accidental reliance on behaviours not promised, or hinder malicious actions from the developers themselves.
+                \end{itemize}
+            \item Mutual suspicion
+                \begin{itemize}
+                    \item Always check the inputs from other modules before processing them.
+                    \item Assume that the inputs are untrusted.  Validate!
+                    \item Also a defence against malicious behaviours from other modules, such as corrupted data.  This prevents the spread of the compromised module.
+                    \item But this comes at the cost of performance as now you're checking all inputs.
+                \end{itemize}
+            \item Confinement
+                \begin{itemize}
+                    \item We can also confine a module by running it in an environment such that it can only access the resources absolutely needed.
+                    \item For example, run code that you don't trust in a sandbox/VM.
+                    \item Obviously you can't run everything in a confined manner; this has a cost in speed and potentially functionality.
+                \end{itemize}
+        \end{itemize}
+    \item Implementation --- what can we do here?
+        \begin{itemize}
+            \item Don't use unsafe languages like C, or be careful if you do.
+            \item Static code analysis --- these often look for things like buffer overflows, TOCTTOU, flaws, etc.  Note they are not perfect; they cannot verify code is perfect, just spot problems, and may result in false positives sometimes.
+            \item Hardware-assistance --- hardware security in things like the processor are being made; for example ARM has pointer authentication.
+            \item Formal methods --- Usually impossible to do in general but in some cases one can try to do so.  There are also programs that one can mark-up their code to get it proven (see: seL4).
+            \item Genetic diversity --- prevent things from all using the same code so malware has a harder time propagating.  
+        \end{itemize}
+    \item What happens if we do find a flaw?  How do we practically reduce them?
+        \begin{itemize}
+            \item Firstly, it would be good to be able to track down where the flaw was introduced.  For example, version control often tracks every user who commits a change, when, and therefore, one can pinpoint when a change was introduced that corresponded to the problem.
+            \item Preventing this can potentially be done via things like code reviews --- get others to take a look at your changes, as a change in perspective often can spot problems!  This is often why open source is deemed more secure --- more people are likely to look at it.
+            \item Two examples of code reviews are guided code reviews (walk through your code to someone else, explain) and Easter egg code reviews, which have intentional flaws so reviewers should expect to find something wrong.
+            \item Another obvious thing to do?  Test!  Try to break the program, pretend to be the attacker, see if you can make it do unspecified behaviour (remember, we want things to do only what is defined).
+            \item Two types of testing --- black box testing (cannot see the internals) and white box testing (can see the internals).
+            \item One type of black box testing is fuzz testing, which will send very, very random data into the object, even data that shouldn't be accepted at all.
+            \item White-box testing is very useful for regression testing as one can make a very comprehensive set of tests that test many internal parts.
+            \item One other thing that helps is documentation --- explain assumptions, design choices, what works/doesn't work, etc.  This helps other developers be privy to your past choices and what's going on currently.
+            \item Finally, there should be a way to push changes that fix flaws that were missed.  That is, the software should be maintainable.
+            \item Have standards.  Specify who should do what, what things must pass before pushing code to master, etc.  Audit that your procedures are being done correctly (usually with an external company/person).
+        \end{itemize}
+\end{itemize}
+
+\end{document}

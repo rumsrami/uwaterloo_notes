@@ -1,0 +1,91 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{green}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 3: Heuristic Search}
+\end{center}
+
+\section{Why Heuristic Search}
+\begin{itemize}
+    \item A heuristic search algorithm uses heuristics to estimate how close a state is to a goal.
+    \item We define the search heuristic, $h(n)$, to be an estimate of the cost of the cheapest path from node $n$ to a goal node.
+    \item $h(n)$ is some arbitrary, non-negative function that would be problem-specific.
+    \item If $n$ is the goal node, then $h(n) = 0$.
+    \item We need $h(n)$ to be simple to compute --- otherwise why use it?
+\end{itemize}
+
+\section{Greedy BFS (Best-first search)}
+\begin{itemize}
+    \item The frontier is a priority queue ordered by $h(n)$, and expand the node with the lowest heuristic cost.
+    \item Note that GBFS will not necessarily find a solution/terminate!
+    \item Nor does it necessarily find the \emph{optimal} path! 
+\end{itemize}
+
+\section{A*}
+\begin{itemize}
+    \item The frontier is a priority queue ordered by $cost(n) + h(n)$.
+    \item Expand the node with the lowest combined cost.
+    \item Combines the ideas of LCFS and GBFS.
+    \item One of the issues of heuristic functions are that it's really hard to determine things like runtimes.
+    \item We state that if $h(n)$ is admissible --- it will never overestimate the cost of the cheapest path from node $n$ to the goal node --- then the solution found by A* will be optimal.
+    \item In other words, it is admissible if the heuristic's cost is always bounded by the \emph{actual} optimal cost.
+    \item Furthermore, we state that A* is \emph{optimally} efficient.
+\end{itemize}
+
+\section{Search Heuristic Design}
+\begin{itemize}
+    \item For something like the 8-puzzle, both a Manhattan Distance and a Misplaced Tile (number of tiles that are not in their goal positions) are admissible heuristic functions.
+    \item First, define a relaxed problem by simplifying or removing constraints on the original problem.
+    \item Then, solve the relaxed problem without search.
+    \item Finally, the cost of the optimal solution to the relaxed problem is an admissible heuristic for the original problem.
+    \item Consider the 8-puzzle:
+        \begin{itemize}
+            \item A tile can move from square A to B if A and B are adjacent, and if B is empty.
+            \item We can define both of the previous heuristics based on what constraints we relax!
+        \end{itemize}
+    \item But which heuristic might be better?
+    \item We actually want a heuristic with a \emph{higher} value --- this means it's closer to $h^*$, the true optimal solution for the constrained problem.
+    \item We can define a heuristic $h_1(n)$ as a ``dominating heuristic'' compared to $h_2(n)$ if ($\forall n (h_1(n) \geq h_2(n))$) and $\exists n (h_1(n > h_2(n))$).
+    \item \textbf{Theorem}: if $h_1(n)$ dominates $h_2(n)$, $A^*$ using $h_1$ will never expand more nodes than $A^*$ using $h_2$.
+\end{itemize}
+
+\section{Pruning}
+\begin{itemize}
+    \item Cycle checking/pruning is required to prevent getting stuck in a cycle.
+    \item We have to ensure the cycle is not part of the least-cost path.
+    \item For something like DFS (that only checks 1 path at a time), our cycle checking can be done in constant time at the cost of space --- store whether a node is on the current path we're exploring; then we can quickly check!
+    \item For something that tracks many paths, then when we generate a neighbour, we can check if the neighbour already appears in the current path.  This would mean the check is linear in the length of the path.
+    \item But what about multiple-path pruning?  We don't want to repeat paths to the same node if we found a better path.
+    \item Cycle checking is actually just a case of multi-path prune!
+    \item This requires us storing all nodes we have found paths to.
+    \item Is it possible to find accidentally prune the optimal solution?  That's something we have to be careful of!
+    \item For $A^*$, it \emph{is} possible, unfortunately, if we use it, and thus would no longer be optimal!
+    \item One thing we can do to deal with it is remove all paths from the frontier that use the longer path.
+    \item Another option is to change the initial segment of the paths on the frontier to use the shorter path.
+    \item Or, you could use a searching algorithm that will \emph{guarentee} that the least-cost path to a node is found in the first place (ie: LCFS).
+    \item Can we do the last option for $A^*$?
+    \item Remember, we \emph{do} control the heuristic --- the admissible definition requires that our path to the goal node is bounded.
+    \item We constrain further --- now, we state that the path to \emph{any} node must be bounded.
+    \item This is called the monotone restriction: for any directed arc from $m$ to $n$, then $h(m) - h(n) \leq cost(m, n)$.
+    \item If this holds, then we say the heuristic is consistent.
+    \item This is a strictly stronger requriement to admissibility (as the arc from $s$ to $g$ is included).  This also ensures that $A^*$ with multi-path pruning is optimal.
+\end{itemize}
+
+\end{document}
