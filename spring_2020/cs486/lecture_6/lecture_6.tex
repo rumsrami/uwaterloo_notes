@@ -19,7 +19,7 @@
 \begin{document}
 
 \begin{center}
-    \Large{CS 486 --- Lecture 6: Machine Learning}
+    \Large{CS 486 --- Lecture 6: Machine Learning and Decision Trees}
 \end{center}
 
 \section{Introduction}
@@ -69,7 +69,8 @@
     \item The goal of ML is to find a hypothesis that can predict unseen examples correctly.  If it can do so well, then we say it generalizes well.
     \item How can we choose a hypothesis that generalizes well?
     \item Occam's razor --- assume the simplest hypothesis is the best.
-    \item Cross-validation --- use a test set later to validate your hypothesis after using the training set on it.
+    \item Cross-validation --- use a test set later to validate your hypothesis after using the training set on it.  Or, if we don't have test data, split up part of your training set as test data.  For example, $k$-fold cross validation will split the training set into $k$ parts; then use one part as validation and the remaining data as training.  Repeat $k$ times.
+    \item After running cross-validation, we can take our best $k$-trained hypothesis or train a new hypothesis on all of the data, using parameters selected by cross-validation.
     \item There is often a trade-off between complex hypotheses that fit the training data better, and simpler hypotheses that generalize better but fit worse.
     \item The bias-variance trade-off --- error is at its highest when the model is too complex (bias low, variance high) OR if it is too low (bias high, variance low) (so a U shape).  We want to find a sweet spot in the middle.
     \item The bias is about the effect of the hypothesis on how well we can fit the data.
@@ -78,6 +79,24 @@
     \item Meanwhile, the variance is about how much the learned hypothesis varies given different training data.
     \item A hypothesis with high variance has many degrees of freedom, is very flexible, fits the training data very well, and is very sensitive --- small changes in the training data can cause the hypothesis to change a lot.
     \item This also means that it cannot adapt to test data; it is overfitted to training data and cannot generalize.
+    \item Overfitting will occur if we make our hypothesis too complex --- the expected error on training sets should decrease over time, but during cross-validation, if it is overfit, it will start to \emph{increase} the cross-validation error!
+    \item We want a model complexity in the middle; we can use cross-validation to do so by watching it to see if the error rate starts increasing instead of decreasing.
+\end{itemize}
+
+\section{Decision Trees}
+\begin{itemize}
+    \item Decision trees are a tree-like structure where we follow branches to reach a leaf as our final ``choice''.
+    \item How do we build a decision tree?
+    \item We need to determine an order of testing the input features, and given an order of testing the input features, we can build a decision tree by splitting the examples.
+    \item Which decision tree should we generate?
+        \begin{itemize}
+            \item Which order of testing the input features should we use?  The search space is too big for systematic searches, so we would use a greedy/myopic search.
+            \item Should we grow a full tree or not?  A decision tree can represent any discrete function of input features.
+            \item We also need a bias --- for example, perhaps we prefer the smallest tree, or the one with the least depth, or fewest nodes, etc.
+        \end{itemize}
+    \item We stop building a tree when we hit a node that only has one choice (ie: only yes, or only no).
+    \item More generally, when all examples belong to the same class.
+    \item Other stopping criterion are when there are no more features to test, or there are no more examples.
 \end{itemize}
 
 \end{document}
