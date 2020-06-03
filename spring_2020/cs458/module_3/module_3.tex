@@ -1,0 +1,129 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=c, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 458 --- Module 3}
+\end{center}
+
+\section{Outline}
+\begin{itemize}
+    \item Allows different entities to access different resources in a shared manner.
+    \item The OS needs to control this sharing and provide an interface for allowing this access.
+    \item Identification and authentication are required for access control.
+    \item Focus on memory protection for now.
+\end{itemize}
+
+\section{Protection in General Purpose Operating Systems}
+\subsection{History}
+\begin{itemize}
+    \item Worth looking at how OSes have evolved until now.
+    \item They now allow multiple users to use the same hardware, and added sequential abilities to run multiple \emph{executives}.  
+    \item The OS should make resources available to users if required and permitted to by some policy.
+    \item OSes also protect users from each other; attacks, mistakes, malware, and resource overconsumption are things to protect against, even if it is a single-user OS.
+\end{itemize}
+\subsection{Protection Basics}
+\begin{itemize}
+    \item Some protected objects:
+        \begin{itemize}
+            \item Memory
+            \item Data
+            \item CPU
+            \item Programs
+            \item I/O devices
+            \item Networks
+            \item The OS itself
+        \end{itemize}
+    \item We talk about memory protection first --- a program should not be able to read the memory of another program unless permitted.
+    \item This is important as a \emph{lot} of things are stored in memory!
+    \item One way to invoke security is separation --- keep a user's objects separate from another's!
+    \item We can do this:
+        \begin{itemize}
+            \item Physically (easy but expensive and inefficient)
+            \item Temporally (execute different users' programs at different times)
+            \item Logically (users don't see other users)
+            \item Cryptographically (make users unable to see other user's data unencrypted)
+        \end{itemize}
+    \item But sometimes, users do want to share resources.
+    \item For example, library routines or files/DB records.
+    \item OSes should allow for flexible sharing --- but this creates new questions:
+        \begin{itemize}
+            \item Which files to share?  What part?
+            \item Which users?
+            \item Which users can share objects further?
+            \item What uses are permitted?  R/W/E perms?  Maybe only specific bits of information (ie: only aggregate info, not individual entries of a DB).
+            \item How long?
+        \end{itemize}
+    \item Often, for memory protection, the OS can exploit hardware support (virtual memory from CS 350) for a cheap solution.
+    \item Memory addresses used are virtual and the MMU will manage this and translate to physical addresses.
+    \item the OS maintains the mapping tables the MMU will use and deals with raised exceptions from the MMU.
+    \item What kinds of hardware support is used for memory protection?
+    \item The simplest is a fence register --- exception if the memory access below addresses is in the fence register.
+    \begin{itemize}
+        \item This protects the OS from user programs.
+        \item This only works for a single-user OS.
+    \end{itemize}
+    \item Another technique is base/bound register pairs.
+        \begin{itemize}
+            \item This throws an exception if memory access is below/above an address in the base/bound register.
+            \item Each user program has different values.
+            \item When a ctx switch occurs, the OS is responsible for moving the current base/bond registers to the currently executing user program.
+            \item We can extend this to have 2 base-bound pairs, one for code, one for data.
+            \item This approach is more flexible.
+        \end{itemize}
+    \item The tagged architecture takes this to the extreme; each memory word has one or more extra bits that identify access rights to the word.
+        \begin{itemize}
+            \item This is very flexible, but it incurs a large overhead and is not portable at all.
+        \end{itemize}
+    \item Segmentation is a common approach (remember CS 350?).
+        \begin{itemize}
+            \item Each program has multiple address spaces, or segments.
+            \item We have different segments for code, data, stack, though this can be split up even further.
+            \item The virtual address contains of two parts --- the segment name, and the offset within the segment.
+            \item The OS will keeps mappings from the segment name to its base physical address in the segment table; one is made for each process.
+            \item The OS can relocate/resize segments and share them between processes.
+            \item The segment table can also keep protection attributes.
+            \item However, because of the resizing/relocation capabilities, this means every access requires a bounds check.
+        \end{itemize}
+    \item In paging, we divide the virtual and physical address spaces into pages and frames respectively.  Frame size is equal to page size.
+        \begin{itemize}
+            \item The virtual address consists of the page number and offset within page.
+            \item The number of bits for the offset is $\log_2($page size$)$.
+            \item The OS keeps the mapping from page number to its base physical address in the page table.
+            \item Similarly to segmentation, protection attributes are kept in the page table.
+            \item Typically used; advantages are:
+                \begin{itemize}
+                    \item Each address reference is checked for protection by hardware
+                    \item Prevent users from accessing unpermitted pages
+                    \item Less used pages can be moved to disk
+                    \item Users can share access to a page
+                \end{itemize}
+            \item Disadvantages:
+                \begin{itemize}
+                    \item Internal fragmentation still is a problem
+                    \item Assigning different levels of protection of different classes of data items is not feasible
+                \end{itemize}
+        \end{itemize}
+    \item The x86 architecture supports both segmentation and paging, though paging is more common.
+    \item Memory protection bits can indicate no access, R/W access, or RO access.
+    \item Processors now also typically include a no execute bit, or NX bit.  This forbids execution of instructions stored in a page, which would make the stack/heap non-executable.
+    \item Note that this does not stop buffer overflow attacks; see module 2 (see return oriented programming, where we don't inject new code but change existing code to do what we want).
+\end{itemize}
+
+\end{document}
