@@ -1,0 +1,120 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 8: Decision Trees}
+\end{center}
+
+\section{Stopping Criterion}
+\subsection{No More Features Left}
+\begin{itemize}
+    \item What do we do if we run out of features during our decision tree construction?
+    \item This occurs if some data in the dataset have the same features but their final classes differ.
+    \item This is due to noise or some factor that we did not observe/track.
+    \item As such, we can't make a deterministic choice just based on the dataset.
+    \item One way we can deal with it is use a majority decision.
+    \item The other possibility is to just randomly make a decision via probabilistic decisions (ie: if 2 data points are ``yes'', and 1 is ``no'', then $\frac{2}{3}$ chance to select ``yes'').
+\end{itemize}
+
+\subsection{No More Examples Left}
+\begin{itemize}
+    \item Occurs if we hit a node with no entries with classes in the dataset.
+    \item Since we never hit this combination of data, we don't know how to predict this!
+    \item How can we handle this case?  One way is to use a similar result; we can use the parent node to make a decision.  We are likely to not be able to make a deterministic choice in this case so like earlier, we can use probability or majority to decide on what option to choose.
+\end{itemize}
+
+\section{Entropy}
+\begin{itemize}
+    \item We can write a decision tree learner as such (in noisy/indecisive cases we return a majority):
+\begin{lstlisting}
+def learner(examples, features):
+    if all examples are in the same class:
+        return class label
+    else if no features left:
+        return majority decision
+    else if no examples left:
+        return majority decision at the parent node
+    else:
+        choose a feature f
+        for each value v of feature f:
+            build edge with label v
+            build subtree using examples where the value of f is v
+\end{lstlisting}
+    \item We can see our 3 base cases and the recursive case (the \lstinline{else} case).
+    \item So how do we choose which feature to test at each step?
+    \item We want to minimize the number of tests to create a shallow/small tree.
+    \item Since finding the global optimal order of testing features is difficult (NP), we use a greedy search instead.
+    \item At each step, test a feature that makes the biggest difference to the classification.
+    \item We want to make a decision ASAP.  So, find a feature that reduces uncertainty as much as possible.
+    \item The information content of a feature is just the uncertainty before testing the feature minus the uncertainty after testing said feature.
+    \item We quantify uncertainty using the idea of entropy.
+    \item Given a distribution $P(c_1), \dots P(c_k)$ over $k$ outcomes $c_1,\dots,c_k$, the entropy of the distribution is 
+        \[I(P(c_1),\dots P(c_k)) = -\sum_{i = 1}^k P(c_i)\log_2(P(c_i))\]
+    \item For example, the distribution of (0.5, 0.5) is 1 bit of uncertainty.
+    \item Or the distribution of (0.01, 0.99) is approximately 0.08 bits of uncertainty, which is low.
+    \item So let's consider a distribution of $(p, 1 - p)$:
+        \begin{itemize}
+            \item The max entropy is 1 when $p = 0.5$.
+            \item The min entropy is 0 when $p = 0$ and $p = 1$.
+            \item Note that in the case $p = 0$, $\log_2(0)$ is undefined\dots but we actually state that $I(0, 1) = I(1, 0) = 0$ by definition.
+            \item This means that the plot of this distribution in regards to $p$ forms a semicircle.
+        \end{itemize}
+\end{itemize}
+
+\section{Calculating Expected Information Gain}
+\begin{itemize}
+    \item A feature has $k$ values $v_1, \dots, v_k$.
+    \item Before we test the feature, we have $p$ positive and $n$ negative examples.
+    \item After testing the feature, for each value $v_i$ of the feature, we have $p_i$ positive and $n_i$ negative examples.
+    \item So given all of this, how do we measure the changing uncertainty?
+    \item We call this the expected information gain.
+    \item The entropy before testing the feature is binary, with a distribution of $H_{\text{before}} = I(\frac{p}{p + n}, \frac{n}{p + n})$.
+    \item After testing the feature, for each branch, we can calculate the corresponding entropy as before.
+    \item So, we get that the expected entropy after testing the feature is $\sum_{i = 1}^k \frac{p_i + n_i}{p + n} \times I(\frac{p_i}{p_i + n_i}, \frac{n_i}{p+i + n_i})$.
+    \item That is, the expected information gain, or entropy reduction, is $H_\text{before} - H_\text{after}$.
+    \item We can generalize this to more than 2 classes.
+\end{itemize}
+
+\section{Handling Real-Valued Features}
+\begin{itemize}
+    \item So what do we do with real values?  For example, temperature by floats.
+    \item So how do we handle discrete features?  We can allow binary splits only, but we can also allow multi-way splits.
+    \item This makes the tree more complex, but also makes it shallower.
+    \item Info gain prefers a variable with a larger domain, so this may add some bias to some results.
+    \item Note we can always convert a tree with multi-way splits into a binary split tree\dots
+    \item Binary-split-only trees are deeper but simpler and more compact.
+    \item One way to convert a real feature to a discrete feature is to group into ranges.
+    \item This is easy to do but you may lose valuable information, may make the tree more complex, and is a bit hard to do without any information.
+    \item Another option is to always do binary tests and dynamically pick a split point.
+    \item A general algorithm to split is to look at points and see if their class changes.  If it does, then it might be worth splitting there (ie: if one has ``yes'' and the other ``no'' then it might be worth splitting).
+\end{itemize}
+
+\section{Overfitting}
+\begin{itemize}
+    \item Our decision tree algorithm is a ``perfectionist'' --- it will keep growing the tree until it \emph{perfectly} fits our training set.
+    \item This could mean it cannot generalize well!
+    \item One potential solution is to \emph{not} grow a full tree.  We could require a minimum number of examples per node, require a threshold of information gain, have a max depth, post-prune a tree, etc.
+    \item Post-pruning is generally a better idea; sometimes there are multiple features which, when working together, are informative, but the feature alone is not useful.
+    \item For example, suppose the function is on 2 bits, and it applies the XOR.  Knowing just one bit tells us nothing, but knowing two bits gives a perfect result.
+    \item If we stop early, then we might not take advantage of looking at each bit separately as it may look useless.
+    \item Meanwhile, with post-pruning, we may have properly split by both bits and we can then see later that this branch is good and we don't prune it.
+\end{itemize}
+
+\end{document}
