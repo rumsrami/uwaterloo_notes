@@ -50,6 +50,10 @@
             \item Networks
             \item The OS itself
         \end{itemize}
+\end{itemize}
+
+\subsection{Memory Protection}
+\begin{itemize}
     \item We talk about memory protection first --- a program should not be able to read the memory of another program unless permitted.
     \item This is important as a \emph{lot} of things are stored in memory!
     \item One way to invoke security is separation --- keep a user's objects separate from another's!
@@ -124,6 +128,157 @@
     \item Memory protection bits can indicate no access, R/W access, or RO access.
     \item Processors now also typically include a no execute bit, or NX bit.  This forbids execution of instructions stored in a page, which would make the stack/heap non-executable.
     \item Note that this does not stop buffer overflow attacks; see module 2 (see return oriented programming, where we don't inject new code but change existing code to do what we want).
+\end{itemize}
+
+\subsection{Access Control}
+\begin{itemize}
+    \item Access control has 3 goals:
+        \begin{enumerate}
+            \item Check every access
+            \item Enforce the least privilege
+            \item Verify acceptable use
+        \end{enumerate}
+    \item To describe the access control matrix, we first define some sets:
+        \begin{itemize}
+            \item Set of protected objects: $O$
+            \item Set of protected subjects: $S$
+            \item Set of rights: $R$
+        \end{itemize}
+        The access control matrix consists of entries $a[s, o]$, where $s \in S$, $o \in O$, and $a[s, o] \subseteq R$.
+    \item For example, we could make a table like:
+        \begin{table}[h]
+        \centering
+        \begin{tabular}{|l|l|l|l|}
+        \hline
+              & File 1 & File 2 & File 3 \\ \hline
+        Alice & orw    & rx     & o      \\ \hline
+        Bob   & r      & orx    &        \\ \hline
+        Carol &        &        &        \\ \hline
+        \end{tabular}
+        \end{table}
+    \item Often, access control matrices are not actually implemented as a matrix\dots the size and time would be awful to deal with.
+    \item It's too sparse!
+    \item Instead, typically they use access control lists, a set of capabilities, or some combination.
+    \item An access control list, or ACL, is such that each object has a list of subjects and their access rights.
+    \item We can quickly determine sets of allowed users per object, or revoking access to one specific object, but determining which objects a user can access or revoking a user's access to all objects is slow.
+    \item For example, digital signatures.
+    \item We can make tokens transferable.
+    \item An example of combining usage of ACLs and capabilities:
+        \begin{itemize}
+            \item In Unix, each file has an ACL, which is consulted when executing an \lstinline{open()} call.
+            \item If approved, then the caller is given a capability listing type of access allowed in ACL.
+            \item Upon \lstinline{read()} or \lstinline{write()} call, the OS looks at capability to determine whether type of access is allowed.
+            \item This doesn't completely mediate; it does not check \emph{every} access.
+        \end{itemize}
+    \item Another way to do access control is role-based access control, or RBAC.
+    \item Administrators assign users to roles and grant access rights to roles.
+    \item This is similar to groups but groups are less flexible.  A group is a set of subjects, while a role is as set of privileges to objects.
+    \item When a user takes over a new role, they need to update only their role assignment, not all their access rights.
+    \item Many commercial DBs do this.
+    \item Also supports more complex access control scenarios:
+        \begin{itemize}
+            \item Hierarchical roles --- a manager is also an employee; this reduces the number of role/access rights assignments
+            \item Users can have multiple roles and assume/give up roles as required
+            \item Separation of duty --- maybe a task needs two people of different roles that cannot be the same person
+        \end{itemize}
+\end{itemize}
+
+\section{User Authentication}
+\begin{itemize}
+    \item Computers often have to identify and authenticate users before authorizing them.
+    \item Difficult for computers to do for people both locally and remotely.
+    \item Four classes of authentication factors:
+        \begin{itemize}
+            \item Something the user knows
+            \item Something the user has
+            \item Something the user is (biometrics)
+            \item Something about the user's context (location, time, devices in proximity, etc.)
+        \end{itemize}
+    \item Authentication factors may be combined for multi-factor authentication (ie: 2FA).
+    \item Using multiple factors from the same class may not be a good idea; for example 2 passwords isn't really useful.
+    \item Also, must make sure the factor cannot be changed --- for example, a factor the user has can become a factor the user knows, like tokens that can be easily duplicated (mag strips) or SMS messages (ie: SIM-jacking).
+\end{itemize}
+
+\subsection{Passwords}
+\begin{itemize}
+    \item A familiar and old authentication method.
+    \item Enter an ID and password, potentially multiple attempts are allowed.
+    \item Many usability problems:
+        \begin{itemize}
+            \item Entering passwords may be inconvenient.
+            \item Password composition/change rules.
+            \item Forgotten passwords may not be recoverable; people tend to forget them.
+            \item If a password is shared then updating passwords is difficult.
+        \end{itemize}
+    \item And security problems:
+        \begin{itemize}
+            \item If the password is leaked, then an individual can immediately access the protected resource unless something like 2FA is used.
+            \item Shoulder surfing.
+            \item Keylogging.
+            \item Interface illusions/phishing.
+            \item Password re-use.
+            \item Password guessing (brute-forcing, for example).
+        \end{itemize}
+    \item Some guessing attacks are exhaustive searching, dictionary attacks, etc.
+    \item In online attacks, we can try to stop this by rate-limiting.  This can still be defeated by social engineering mechanisms, though.  For example, bypassing via secret questions/recovery methods.
+    \item Password hygiene can be helped by things like password managers (though this now keeps all eggs in one basket), or passphrases that are easier to remember but still hard to guess.
+    \item Don't reveal your passwords, don't use passwords on public computers, and don't re-use passwords.
+    \item Advice for developers:
+        \begin{itemize}
+            \item Don't use password composition rules.
+            \item At least 8 characters minimum length.
+            \item At least 64 characters max length.
+            \item Allow any characters.
+            \item Blacklist frequently used/compromised passwords.
+            \item Avoid password hints or secret questions.
+            \item Don't force users to change passwords.
+            \item Allow passwords to be copy-pasted.
+            \item Use 2FA (but avoid SMS-based).
+        \end{itemize}
+    \item Attacks on password files --- websites need to store passwords (or something) in a file to validate password inputs.
+    \item Passwords in plaintext is a stupid idea as access to it from an intruder or\dots anyone really, could immediately screw over a lot of people.
+    \item Cryptographic tools:
+        \begin{itemize}
+            \item Hash --- compute a fixed-length, one-way output.  Deterministic.
+            \item MAC --- takes a secret key as an input value; otherwise a hash.  Deterministic.
+        \end{itemize}
+    \item Now, store a hash of the password in the password file.
+    \item Compare the \emph{hash of the input} with the stored hash (fingerprint).
+    \item But this would still allow offline guessing attacks\dots
+    \item Add a user-specific \emph{salt} to the password fingerprint.
+    \item So two users with the same password have different fingerprints.
+    \item This makes pre-computed tables useless.
+    \item Using an iterated hash function which is slow to compute is better than using a standard hash function that would be fast to compute.
+    \item This would not be noticed when a user inputs a password, but much more noticeable during a brute-force attack.
+    \item Then, to make it better, throw in a MAC instead of a cryptographic hash.
+    \item This adds a secret key required to compute the password fingerprint.
+    \item This makes guessing attacks based on the fingerprints alone useless, but would require some kind of secret key generation/storage, using software/hardware.
+    \item If the key does leak, then the scheme remains as secure as a scheme based on solely a cryptographic hash.
+    \item How do we do password recovery?
+    \item Well, that would require storing the password in some way\dots that's a no-go.
+    \item So, use password-resetting mechanisms instead!
+    \item Interception attacks --- intercept the password as it is being sent to the server.
+    \item OTP (one-time passwords) make this attack useless; for example fobs, auth. apps, challenge-response protocols.
+    \item A challenge-response protocol is using a random challenge to the client and the completion of the client + password computes a one-time password.
+    \item Also, passwords (or their hashes) are usually encrypted via TLS to protect from interception attacks.
+    \item Though sometimes, they're still transmitted via PT!
+    \item There are also cryptographic protocols, like SRP, that make intercepted info useless to an attacker.
+    \item Unlock patterns are an alternative.
+    \item May have an issue; fingerprints/smudges may reveal the combination!
+    \item Another graphical password is image selection; this has some issues with randomness and shoulder-surfing.
+    \item Systems should authenticate the user, but the user should also authenticate the server is real!
+    \item Biometrics are hailed as a way to get rid of problems with password and token-based authentication.
+    \item Problems:
+        \begin{itemize}
+            \item Observed fingerprint just has to be \emph{close enough}, otherwise it would be too hard to use reliably.
+            \item Could potentially be tricked if not done correctly (ie: face identification).
+            \item Not secret!
+            \item Cannot change!
+        \end{itemize}
+    \item Authentication vs. identification --- former is checking whether a captured trait corresponds to a particular stored trait, while the latter is if it corresponds to \emph{any of the stored traits}.
+    \item False positives can make biometrics-based identification useless (ie: Alice is accepted as Bob).
+    \item Another potential example of the base rate fallacy --- if the base rate is low and there are some false positives, it will seem like a huge failure.
+    \item More issues with biometrics: privacy, accuracy.
 \end{itemize}
 
 \end{document}
