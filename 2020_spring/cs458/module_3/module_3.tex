@@ -281,4 +281,107 @@
     \item More issues with biometrics: privacy, accuracy.
 \end{itemize}
 
+\section{Security policies and models}
+\begin{itemize}
+    \item Trusting something means that if that entity misbehaves, the security of the system fails.
+    \item We trust an OS if we have confidence it provides security services (memory/file production, access control and user auth.).
+    \item Typically a trusted OS will build on four factors:
+        \begin{enumerate}
+            \item Policy (a set of rules outlining what is secured and why)
+            \item Model (a model that implements the policy and that can be used for reasoning about the policy)
+            \item Design (a spec. of how the OS implements the model)
+            \item Trust (assurance that the OS is implemented according to design)
+        \end{enumerate}
+    \item We expect trusted software to do what it says it is going to do, and nothing more.
+    \item We also expect:
+        \begin{itemize}
+            \item Functional correctness --- does it work correctly?
+            \item Enforcement of integrity --- wrong input won't impact the correctness of data (test via fuzzing).
+            \item Limited privilege --- access rights are minimized and not passed to others if not intended.
+            \item Appropriate confidence level --- software has been rated as required by the environment.
+        \end{itemize}
+    \item Trust can change over time.
+\end{itemize}
+
+\subsection{Security Policies}
+\begin{itemize}
+    \item Security policies had their roots in military security policies.
+    \item Each object/subject had a sensitivity/clearance level --- for example, ``Top Secret'' $>_c$ ``Secret'' $>_c$ ``Confidential'' $>_c$ ``Unclassified''.
+    \item Each object/subject might also be assigned to one or more compartments; this means that people would know only what they needed to know.
+    \item A subject $s$ could only access object $o$ iff their level was greater than that of the object, and their allowed compartments were a superset (or equal) of the compartments that $o$ used.
+    \item If $s$ dominates $o$, then we could denote it as $s \geq_{dom} o$.
+    \item So if someone had clearance ``Top Secret'' and access to compartment ``East Germany'', then they could not access a document that had the same clearance but a compartment of ``East Germany'' \emph{and} ``Soviet Union''!
+    \item The integrity of information could be more important than confidentiality --- Clark-Wilson Security Policy.
+    \item Uses transactions; remember DBs!
+    \item Another issue is potential conflicts of interests --- Chinese Wall Security Policy; hard to go to the other side of the wall once you're on one side.
+    \item Once you have been given access to some specific information, you cannot access information of other categories in a similar manner, for example.
+    \item Think of being able to access info about a company, and being restricted from accessing similar data from competing companies, or the like.
+    \item The \emph{ss-property} means that subject $s$ can access object $o$ iff each object previously accessed by $s$ either belongs to the same company as $o$ or a different kind of company than $o$.
+    \item The \emph{*-property} means that for a write access to $o$ from $s$, we also need to ensure that all objects readable by $s$ either belong to the same company as $o$ or have been sanitized.
+        \begin{itemize}
+            \item The *-property prevents writing such that there is indirect information flow.
+        \end{itemize}
+    \item Many security models have been defined with may properties; however their relevance to practically used security models may not be clear.
+    \item We focus on looking at two prominent models:
+        \begin{itemize}
+            \item Bell-La Padula Confidentiality
+            \item Biba Integrity
+        \end{itemize}
+    \item These are targeted at multilevel security (MLS) policies, where subjects/objects have clearance/classification levels.
+\end{itemize}
+
+\subsection{Lattices}
+\begin{itemize}
+    \item The dominance relationship $\geq_{dom}$ is transitive and anti-symmetric.
+    \item It defines a partial order (you cannot have $a \geq b$ and $b \geq a$) (subscript omitted for brevity).
+    \item In a \emph{lattice}, for every $a$ and $b$, there is a unique lowest upper bound $u$ for which $u \geq a$ and $u \geq b$ and a unique greatest lower bound $l$ for $a \geq l$ and $b \geq l$.
+    \item There are also two elements $U$ and $L$ that dominate/are dominated by all levels.
+\end{itemize}
+
+\subsection{BLP}
+\begin{itemize}
+    \item Regulates information flow in MLS policies, like lattice-based ones.
+    \item Users should get info only according to their clearance!
+    \item The underlying principle is information can only flow up.
+    \item The ss-property is ``no read up'' --- $s$ should have read access to $o$ only if $C(s) \geq C(o)$.
+    \item The *-property is ``no write down'' --- $s$ should have write access to $o$ only if $C(o) \geq C(s)$.
+    \item Typically though, strict enforcement is too restrictive.
+\end{itemize}
+
+\subsection{Biba}
+\begin{itemize}
+    \item To prevent inappropriate modification of data.
+    \item Subjects/objects are ordered by an integrity classification scheme, $l(s)$ and $l(o)$.
+    \item Write access: $s$ can only modify $o$ if $l(s) \geq l(o)$ (unreliable person cannot modify file with high integrity info).
+    \item Read access: $s$ can read $o$ only if $l(o) \geq l(s)$ (unreliable information cannot contaminate subject).
+    \item In practice, Biba's rules are \emph{too} restrictive, as a subject can never read a lower integrity object.
+    \item We can instead use a dynamic integrity level.
+    \item The \emph{Subject Low Watermark Property} is where if $s$ reads $o$ then $l(s) = min(l(s, l(o)))$.
+    \item The \emph{Object Low Watermark Property} is where if $s$ modifies $o$, then $l(o) = min(l(s), l(o))$.
+    \item The integrity of subject/object can only go down --- that is, info flows down.
+\end{itemize}
+
+\subsection{Review of BLP and Biba}
+\begin{itemize}
+    \item Very simple which makes proving properties about them easy.
+    \item For example, we can prove that if a system starts secure, it remains secure.
+    \item But they are \emph{too} simple.
+    \item For example, we need declassification, we need confidentiality \emph{and} integrity, we need object creation.
+    \item And information leaks can still be possible through covert channels!
+    \item So what do?
+\end{itemize}
+
+\subsection{Information Flow Control}
+\begin{itemize}
+    \item Describes authorized paths along which information can flow.
+    \item For example, BLP describes a lattice-based information flow policy.
+    \item For a compiler-based information flow control, a compiler would check whether the information flow in a program would violate the policy.
+    \item How could information flow from a variable to another?
+    \item It could be explicit (\lstinline{y = x;}) or implicit (\lstinline{if (x = 1) y = 0; else y = 1;}).
+    \item The input parameters of a program could have a lattice-based security classification associated with them.
+    \item The compiler would then go through the program and update the security classification of each variable depending on the individual statements that update the variable.
+    \item Therefore, a security classification for each variable that is output by the program are computed.
+    \item A user/program is allowed to see the output only if allowed by its security classification!
+\end{itemize}
+
 \end{document}

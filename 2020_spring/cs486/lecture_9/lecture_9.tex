@@ -1,0 +1,104 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 9: Artificial Neural Networks, Part 2}
+\end{center}
+
+\section{Gradient Descent}
+\begin{itemize}
+    \item Like walking downhill and taking a step in the direction that goes down the most.
+    \item A local search algorithm to find the minimum of a function.
+    \item Initialize weights randomly; change them in proportion to the negative of the partial derivative of the error with respect to the weight, or $w = w - \sum \eta \frac{\partial error}{\partial w}$.
+    \item $\eta$ is the learning rate.
+    \item Set a max termination number of steps to prevent getting stuck forever!
+    \item Two types of GD are:
+        \begin{itemize}
+            \item Incremental gradient descent --- update weights after each example.
+            \item Stochastic gradient descent --- each example is chosen randomly.
+        \end{itemize}
+    \item The problem with those is that while there are cheaper steps and the weights become accurate faster, it is not guaranteed to converge!
+    \item There is a trade-off between learning speed and convergence --- we can do batched GD, where we only update the weights after a \emph{batch} of examples.
+    \item So why do we update the weight proportionally to the negative of the partial derivative?
+    \item When the partial derivative is positive, we want to head down towards the centre, so we would want the negative, and VV.
+    \item In terms of magnitude, if it is large, then we want to take larger steps as it means we are still far.  Likewise, if it is small, we want to take smaller steps to avoid overshooting.
+\end{itemize}
+
+\section{Back-propagation}
+\begin{itemize}
+    \item Aims to learn the weights in a neural network by using GD.
+    \item We'll refer to the XOR 3-layer NN for now.
+    \item For each training example, $(x_1, x_2, y_1, y_2)$, perform 2 passes:
+        \begin{itemize}
+            \item Forward pass --- compute $o_1, o_2$ given $x_1, x_2$ and the weights.
+            \item Backwards pass --- calculate the partial derivative of the error with respect to each weight.
+        \end{itemize}
+    \item Then update each weight by the sum of changes for all training examples.
+    \item So what is the partial derivative, $\frac{\partial E}{\partial w2_{12}}$?
+    \item $w2_{12}$ links to $b_2$ which links to $o_2$ which links to $E$.
+    \item It's equal to:
+        \begin{align*}
+            \frac{\partial E}{\partial o_2} \times \frac{\partial o_2}{\partial b_2} \times \frac{\partial b_2}{\partial w2_{12}}
+        \end{align*}
+    \item And $E = (o_2 - y_2)^2 + (o_1 - y_1)^2$.
+    \item $o_2 = g(b_w)$
+    \item $g(x) = \frac{1}{1 + e^{-x}} \implies g'(x) = g(x)(1-g(x))$
+    \item So, $\frac{\partial E}{\partial o_2} = 2(o_2 - y_2)$.
+    \item And $\frac{\partial o_2}{\partial b_2} = o_2(1 - o)2 = g(b_2)(1 - g(b_2))$.
+    \item And lastly $\frac{b_2}{w2_{12}} = h_1$.
+    \item So, the original partial is $\frac{\partial E}{\partial w2_{12}} = 2(o_2 - y_2) o_2 (1 - o_2)h_1$.
+    \item Note we did $w2$ first --- this is why it's a backwards pass, because doing so makes calculating $w1$ easier!
+    \item Now, let's calculate $w1_{12}$.
+    \item $w1_{12}$ affects $a_2$, then $h_2$, then $b_1$ \emph{and} $b_2$, which go to $o_1$ and $o_2$ respectively which both then feed into $E$.
+    \item This is equal to\dots
+        \[
+            \frac{\partial E}{\partial W1_{12}} = \frac{\partial E}{\partial o_1} \frac{\partial o_1}{\partial b_1} \frac{\partial b_1}{\partial h_2} \frac{\partial h_2}{\partial a_2} \frac{\partial a_2}{\partial w1_{12}} + \frac{\partial E}{\partial o_2} \frac{\partial o_2}{\partial b_2} \frac{\partial b_2}{\partial h_2} \frac{\partial h_2}{\partial a_2} \frac{\partial a_2}{\partial w1_{12}}
+        \]
+    \item We actually have many parts of this due to calculating backwards!
+\end{itemize}
+
+\section{NN vs. Decision Trees}
+\begin{itemize}
+    \item So\dots when do we use DT vs. NN?
+    \item A NN is good if there is:
+        \begin{itemize}
+            \item A high dimensional or real-valued inputs
+            \item Noisy data
+            \item Form of target function is not known
+            \item Not important for humans to explain the learned function
+        \end{itemize}
+    \item Some disadvantages of NNs:
+        \begin{itemize}
+            \item Difficult to determine the network structure (no. of layers, no. of neurons)
+            \item Difficult to interpret the weights, especially with multiple layers
+            \item Tendency to overfit in practice
+        \end{itemize}
+    \item So which model we use depends on a few factors:
+        \begin{itemize}
+            \item What data type do we have?  NNs are good for complex/high dimensional data, like images, audio, text.  DTs are better for \emph{tabular} data.
+            \item The size of the dataset.  DTs could work better with less data (think of the in-class example), but to train a NN that works well we need a lot of data.
+            \item What form does the target function take?  A NN can express many functions, while a DT is basically just a bunch of nested if-else statements.
+            \item What is the architecture?  For a DT, this is simple --- it's just a tree, with few parameters unless you add things like pruning at a specific depth.  But for a NN, there are \emph{many} parameters --- initial weights, learning rates, etc.
+            \item Do we need to interpret the learning function?  DTs are simple, NNs can give learned functions that are impossible for people to explain.
+            \item How much time do we have for training and classification?  A NN is slower to train and test in comparison to a DT.
+        \end{itemize}
+\end{itemize}
+
+\end{document}
