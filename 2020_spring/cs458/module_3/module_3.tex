@@ -384,4 +384,126 @@
     \item A user/program is allowed to see the output only if allowed by its security classification!
 \end{itemize}
 
+\section{Trusted OS Design}
+\begin{itemize}
+    \item Eight design principles for security:
+        \begin{itemize}
+            \item Least privilege: give the least privileges possible
+            \item Economy of mechanism: use simple and straightforward protection mechanisms
+            \item Open design: avoid security by obscurity (Kerckhoff's principle/Shannon's maxim)
+            \item Complete mediation: every access attempt must be checked
+            \item Permission based/fail-safe defaults: default should be denial of access
+            \item Separation of privileges: avoid a single point of failure; perhaps use two or more conditions to get access (ie: 2fa, dual-custody)
+            \item Least common mechanism: avoid one failure in a mechanism from cascading; don't share mechanisms if possible
+            \item Ease of use: if the protection mechanism is difficult to use, people will not want to use it correctly or at all
+        \end{itemize}
+    \item Some security features of a trusted OS:
+        \begin{itemize}
+            \item Access control:
+                \begin{itemize}
+                    \item Mandatory access control (central authority establishes permissions).
+                    \item Discretionary access control (owners of an object have some control over who can access what).
+                \end{itemize}
+            \item Object reuse protection
+                \begin{itemize}
+                    \item Suppose memory is used to store a password.
+                    \item If someone else uses the same memory, the OS should have erased that memory so that other users can't peek into the memory to find old, sensitive data.
+                    \item This is also the case for data.  For example, a hidden file, or data within a file, may actually still exist despite being deleted/hidden.
+                \end{itemize}
+            \item Trusted path
+                \begin{itemize}
+                    \item Give assurance to a user that their inputs are being sent to the correct receiver application.
+                    \item This is difficult.
+                \end{itemize}
+            \item Accountability and auditing
+                \begin{itemize}
+                    \item Keep an audit log of security-related events.
+                    \item This provides accountability if something goes wrong.
+                    \item Something something Murphy.
+                    \item The audit log does not give accountability though if an attacker can \emph{modify} said log.
+                    \item The granularity of event logging may be important --- if it is too fine-grained then finding an attack or storing it may  become a problem.  But if it is too coarse, then we might miss the attack entirely!
+                \end{itemize}
+            \item Intrusion detection
+                \begin{itemize}
+                    \item Alarm if behaviour looks suspicious.
+                \end{itemize}
+        \end{itemize}
+\end{itemize}
+
+\subsection{Trusted Computing Base (TCB)}
+\begin{itemize}
+    \item The TCB consists of the part of a trusted OS that is necessary to enforce OS security policy.
+    \item The security kernel runs below the operating system level; this makes it harder to attack.
+    \item In the ring structure, it is between OS and hardware.
+    \item It should be minimal and only have core functionality.
+    \item Many OSes don't use the 4 rings of an x86 architecture (Linux and Windows only use user and supervisor mode).
+    \item The reference monitor is a collection of access controls for devices, files, memory, etc.
+        \begin{itemize}
+            \item Important part of TCB.
+            \item Must be tamperproof, un-bypassable, and analyzable.
+        \end{itemize}
+\end{itemize}
+
+\subsection{Virtualization}
+\begin{itemize}
+    \item A way to provide logical separation/isolation.
+    \item Virtual memory, for example, uses a page mapping to give processes the impression of having separate memory spaces.
+    \item We can go further with virtual \emph{machines}.  These virtualize, well, a machine, with virtual I/O devices, files, etc.
+    \item This means that attacks would be limited to the virtual environment.
+\end{itemize}
+
+\subsection{Application Insulation}
+\begin{itemize}
+    \item A similar approach; shield applications from other apps.
+    \item The application is partitioned into trusted and untrusted code.
+    \item The former is encrypted in memory with the key in secure hardware, while the latter talks to trusted code via an API.
+    \item Examples are Intel SGX and AMD memory encryption.
+\end{itemize}
+
+\subsection{Security in Popular OSes}
+\begin{itemize}
+    \item Windows has UAC for temporary access rights, and integrity levels.
+    \item In UNIX, root has full access to anything.
+    \item SELinux/AppArmor provide MAC to Linux.
+    \item Other approaches like Chroot, compartmentalization, SUID also exist for UNIX.
+    \item And smartphones usually restrict apps in terms of what they can access.
+    \item \lstinline{chroot} sandboxes/jails a command by changing its root directory.
+        \begin{itemize}
+            \item Thus, the process cannot access files outside of the jail.
+            \item This is not perfect though, there are ways to break out of it and some commands/programs get difficult to use in a jail.
+        \end{itemize}
+    \item Containers can run processes in a set of namespaces (process IDs, user IDs, filesystem mounts, etc.), which means that the process cannot see many things from the client machine.  Examples are Docker.
+        \begin{itemize}
+            \item This also means that a program can get elevated privileges \emph{only} within the container, and not the actual client machine.
+        \end{itemize}
+    \item Compartmentalization splits applications into parts and apply the least privilege on each part.
+        \begin{itemize}
+            \item For example, OpenSSH splits SSH into a privileged monitor and a jailed, unprivileged child.
+            \item The child must contact the monitor to get protected information.
+            \item The child will be shut down by the monitor if it finds the child suspicious.
+        \end{itemize}
+    \item setuid/suid bit
+        \begin{itemize}
+            \item UNIX ACLs contain a suid bit.
+            \item If it is set, then the executable will run under the identity of its owner, \emph{not} the caller.
+            \item So, \lstinline{passwd} belongs to root and has suid bit set.
+            \item This means the program will run as root.
+            \item There is a possibility of a ``confused deputy'' attack, where an attacker can fool the program into thinking they are another user which could potentially cause some harm (ie: passwd changing password for another user than the one calling it).
+        \end{itemize}
+\end{itemize}
+
+\subsection{Assurance}
+\begin{itemize}
+    \item How to convince people to trust our software?
+    \item Testing and formal verification are two aforementioned ways.
+    \item Validation is another.
+    \item These are things that a trusted entity can evaluate for software, certifying that it satisfies some criteria.
+    \item Two well-known setso f criteria are the Orange Book (US) and the Common Criteria.
+    \item The OB lists several ratings based on evaluation and security.
+    \item Ranges from D to A1.
+    \item For example, Windows NT has C2, UNIXes are usually C1.
+    \item The international version of this is the Common Criteria.  Products are rated against profiles, where there is EAL 1 (worst) to EAL 7 (best).
+    \item RHEL and Windows 7 have EAL 4+, for example.
+\end{itemize}
+
 \end{document}
