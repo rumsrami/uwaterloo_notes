@@ -1,0 +1,86 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 10: Uncertainty and Probability}
+\end{center}
+
+\section{Intro to Uncertainty and Probability}
+\begin{itemize}
+    \item There is a lot of things that an agent may not be able to observe, or an action that did not have intended consequences.
+    \item So, an agent may need to reason and make a decision based on uncertainty!
+    \item Probability is the formal measure of uncertainty.
+    \item There are two views of probability:
+        \begin{itemize}
+            \item \emph{Frequentists} see probability as something objective and observable; we can compute the probabilities by  counting the frequencies of events.
+            \item \emph{Bayesians} see probability as something subjective, and degrees of belief.  We start with prior beliefs and update beliefs based on new evidence.
+        \end{itemize}
+    \item In this course, we follow the Bayesian view.
+    \item A \emph{random variable} has a domain of possible values and an associated probability distribution which is a function from the domain of random variables to $[0, 1]$.
+    \item Some stuff about probability (let $A$ and $B$ be boolean random variables):
+        \begin{itemize}
+            \item $0 \leq P(A) \leq 1$
+            \item $P(A) = 1$ means it is always true, $P(A) = 0$ means it is always false (duh)
+            \item $P(A \vee B) = P(A) + P(B) - P(A \wedge B)$
+        \end{itemize}
+    \item A probabilistic model contains a set of RV.
+    \item An atomic event assigns a value to every RV in the model.
+    \item A joint probability distribution assigns a probability to every atomic event.
+    \item We define $P(X)$ as a prior/unconditional probability --- the likelihood of $X$ in the absence of any other information, based only on background info.
+    \item We define $P(X|Y)$ as a posterior or conditional probability --- the likelihood of $X$ given $Y$, based on $Y$ as evidence.
+    \item Given a joint prob. distribution, how do we compute:
+        \begin{itemize}
+            \item The probability over a subset of the variables?
+            \item A conditional probability?
+        \end{itemize}
+    \item We can compute the probability over a subset of the variables using the \emph{sum rule}.
+    \item So, given a joint distribution over $A, B, C$, we can calculate $P(A \wedge B)$ by summing out $C$, as:
+        \[
+            P(A \wedge B) = P(A \wedge B \wedge C) + P(A \wedge B \wedge \neg C)
+        \]
+    \item Basically fix all values we care about and add all combinations of values we don't care about.
+    \item How about $P(A)$?
+        \[
+            P(A \wedge B) = P(A \wedge B \wedge C) + P(A \wedge B \wedge \neg C) + P(A \wedge \neg B \wedge C) + P(A \wedge \neg B \wedge \neg C)
+        \]
+    \item Now, how do we calculate $P(A|B)$ given a joint distro. over $A, B, C$?
+    \item Use:
+        \begin{align*}
+            &\qquad ~~ P(A|B) = \frac{P(A \wedge B)}{P(B)}\\
+            &\implies P(A \wedge B)= P(A|B)P(B)
+        \end{align*}
+    \item Hence, the product rule.
+\end{itemize}
+
+\section{Chain and Bayes' Rule}
+\begin{itemize}
+    \item The chain rule for two variables is $P(A \wedge B) = P(A | B) \times P(B)$.
+    \item For three variables, $P(A \wedge B \wedge C) = P(A|B \wedge C) * P(B|C) * P(C)$.
+    \item For $n$ variables,
+        \begin{align*}
+            P(X_N \wedge X_{n-1} \cdots X_1) 
+            &= \prod^n_{i=1}P(X_i|X_{i-1}\wedge \cdots \wedge X_1) \\
+            &= P(X_n|X{n-1}\wedge \cdots \wedge X_1) \times \cdots \times P(X_2|X_1) \times P(X_1)
+        \end{align*}
+    \item How do we flip a conditional probability?  For example, if you had $P(\text{symptom} | \text{disease})$, how do you get $P(\text{disease}|\text{symptom})$?
+    \item We define the Bayes' rule as $P(X|Y) = \frac{P(Y|X) \times P(X)}{P(Y)}$
+\end{itemize}
+
+\end{document}
