@@ -1,0 +1,63 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=c, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 458 --- Module 4}
+\end{center}
+
+\section{Intro to Networks}
+\begin{itemize}
+    \item To create a network, you need 3 things:
+        \begin{enumerate}
+            \item Devices able to receive and send signals
+            \item A way to connect devices to each other
+            \item Rules for communicating, or a protocol
+        \end{enumerate}
+    \item Some examples of protocols:
+        \begin{itemize}
+            \item Token ring --- a person can only talk if they have the token
+            \item CSMA/CD --- all listen to the wire, if they hear no signal they try to transmit.  If there is a collision, then they all stop and resend.
+        \end{itemize}
+    \item Well what are some problems?
+        \begin{itemize}
+            \item The Internet's design connects many computer networks together.  It also assumes that participants are honest and will cooperate --- they will not look at messages that don't belong to them, they will not delete your messages, etc.  Everyone should mutually work together\dots right?
+            \item There's also no routing logic in the addressing scheme --- given some IP address, who knows where it comes from?  For example, a phone number has an area/country code.  An IPV4 address like \lstinline{136.192.63.0} could come from anywhere!
+            \item Nor can you control the path your message follows!
+            \item Your message can be broken up with each part following a different route.
+            \item There is no real hard stop limit to the number of nodes (at least everywhere).
+            \item It's really hard to conceptualize.
+            \item Nobody is in charge (both good and bad).
+        \end{itemize}
+\end{itemize}
+
+\section{Daemons, Servers, Ports}
+\begin{itemize}
+    \item A server is a computer on a network to do tasks for other computers (clients).
+    \item A daemon is like a servant that can only do one task within a server.
+    \item We can think of a server like a huge apartment building, and each apartment can have one servant (daemon).
+    \item For example, the mail sending daemon (SMTP) is 25.
+    \item Some apartments (ports) can be empty.  Many ports are actually empty!
+    \item One could hide a service in a port it's not supposed to be in.
+    \item For example, an HTTP daemon is in port 80.  This is implied by default (ie: \lstinline{https://www.uwaterloo.ca} implies \lstinline{https://www.uwaterloo.ca:80}).
+    \item But one could put a web service at, for example, port 8080.
+    \item A ``loose-lipped'' system may reply to an attacker and advertise what services they are running \emph{and} what at what port.
+\end{itemize}
+
+\end{document}
