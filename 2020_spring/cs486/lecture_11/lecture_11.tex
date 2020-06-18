@@ -1,0 +1,61 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 11: Independence and Introduction to Bayesian Networks}
+\end{center}
+
+\section{Independence}
+\begin{itemize}
+    \item Unconditional independence: $X, Y$ are unconditionally independent iff:
+        \begin{align*}
+            P(X|Y) &= P(X) \\
+            P(Y|X) &= P(Y) \\
+            P(X \wedge Y) &= P(X)P(Y)
+        \end{align*}
+        Learning $Y$ does not influence our beliefs about $X$!
+    \item Conditional independence: $X$ and $Y$ are conditionally independent given $Z$ if:
+        \begin{align*}
+            P(X|Y \wedge Z) &= P(X|Z) \\
+            P(Y|X \wedge Z) &= P(Y|Z) \\
+            P(Y \wedge X | Z) &= P(Y | Z) P(X | Z)
+        \end{align*}
+        Learning $Y$ does not influence $X$ if we already know $Z$.
+    \item In general, to specify the joint distribution for $n$ RV, you need $2^n - 1$ probabilities.  This is as:
+        \begin{align*}
+            P(A \wedge B \wedge C) &= P(A) P(B|A) P(C|A \wedge B)
+        \end{align*}
+        This means we need $P(A), P(B|A), P(B|\neg A), P(C | A \wedge B), P(C | A \wedge \neg B), P(C | \neg A \wedge B), P(C | \neg A \wedge \neg B)$.
+    \item However, if they are all independent, then we only need $n$ probabilities.  As:
+        \[
+            P(A \wedge B \wedge C) = P(A) P(B) P(C)
+        \]
+    \item Lastly, if $A$ and $B$ are conditionally independent given $C$.  We would need 5 probabilities.
+    \item We can figure this out by drawing dependency graphs (ie: in the previous example, $C$ is needed for $A$ and $B$, so we need $P(C), P(A|C), P(A|\neg C), P(B), P(B|\neg C)$.
+\end{itemize}
+
+\section{Bayes Net}
+\begin{itemize}
+    \item We can compute any probability using a joint distribution, but they quickly grow as the number of variables increases, and they are unnatural and tedious to specify all probabilities.  
+    \item A Bayesian Network is a compact version of the joint distribution, taking advantage of the unconditional and conditional independence among the variables. 
+    \item For example, a 6 node joint distro would need $2^6 - 1$ probabilities --- the Bayesian network for the same given problem could use only 12!
+\end{itemize}
+
+\end{document}

@@ -19,7 +19,7 @@
 \begin{document}
 
 \begin{center}
-    \Large{CS 458 --- Module 4}
+    \Large{CS 458 --- Module 4: Networks}
 \end{center}
 
 \section{Intro to Networks}
@@ -58,6 +58,69 @@
     \item For example, an HTTP daemon is in port 80.  This is implied by default (ie: \lstinline{https://www.uwaterloo.ca} implies \lstinline{https://www.uwaterloo.ca:80}).
     \item But one could put a web service at, for example, port 8080.
     \item A ``loose-lipped'' system may reply to an attacker and advertise what services they are running \emph{and} what at what port.
+\end{itemize}
+
+\section{Port Scanning, Information Gathering, Wiretapping, Impersonation}
+
+\subsection{Port Scanning}
+\begin{itemize}
+    \item A port scan checks every port in sequence.
+    \item We would ideally want, at least for security, to not reply when ports are checked.
+    \item Unfortunately, this isn't really possible as we need this replying for actual use.
+    \item Tools like \lstinline{nmap} would give many details about a machine.
+    \item A command like \lstinline{finger} allows you to look up a user in a machine.  If this is not closed, one could do it from outside a machine\dots
+    \item But this is just the beginning\dots maybe you could get some info, but port scanning is not really malicious on its own yet.
+\end{itemize}
+
+\subsection{Intelligence Gathering}
+\begin{itemize}
+    \item Social Engineering is attacking people via exploiting other humans, which can give valuable information.
+    \item Pretending to be part of an organization they're not, exploiting the helpful nature of people (``I forgot my password''), distractions to grab information somehow, etc.
+    \item Other ways you could get info?
+        \begin{itemize}
+            \item Dumpster diving
+            \item Eavesdropping
+            \item Lots of things placed online that shouldn't be there --- Google, social media, etc.
+        \end{itemize}
+    \item Wiretapping
+        \begin{itemize}
+            \item Two types: passive and active.
+            \item Passive wiretapping is basically just eavesdropping.  When a message is sent, a node could read the destination data --- but there is \emph{nothing} stopping Eve from looking at the data!
+            \item The analogy is an envelope with an address and a non-sealed back.
+            \item Active wiretapping will require modification/fabrication of communication.
+            \item For example, Mallory could modify a message sending money from one account to another.  That is, Mallory is usually a MITM during an active wiretap attack.
+            \item One can also eavesdrop while communication is flowing through a link; we call ``promiscuous sniffing''.
+            \item We should \emph{always} assume someone is eavesdropping the data!
+            \item The degree of vulnerability would depend on the communication media:
+                \begin{itemize}
+                    \item For example, copper cables mean that a physically close attacker could eavesdrop without making physical contact, or just cut the cable open/splice in another cable.
+                    \item Coaxial cables help shield some of this signal from leaking out compared to twisted pair cables.
+                    \item Optical fibre would be harder, as there is no inductance and signal loss caused by splicing would be noticeable.
+                    \item Unbound transmission is through the air --- WiFi, microwaves, radio, etc.
+                    \item This is versus bounded, like cables.
+                    \item How could we protect something like WiFi?  Problems are:
+                        \begin{itemize}
+                            \item It is easy to intercept with anything that can use WiFi.
+                            \item It's easy to read packet info like destination and source IP addresses --- even at a distance!
+                            \item Physical barriers are useless for a wireless network.
+                            \item Wireless APs can also be faked; one could use a router that is not actually owned by the network you are connecting to to steal credentials.
+                        \end{itemize}
+                \end{itemize}
+            \item When we transmit data, how do we choose what medium?
+                \begin{itemize}
+                    \item Is it sensitive?  If it is, we probably don't want to use an unbounded medium.
+                    \item Are there \emph{segments} of the network carrying sensitive data?
+                    \item Would one notice of an intruder is eavesdropping?  For example, using barriers that would make an attack obvious due to damage to said barrier.
+                    \item Are backbone segments accessible?  Can an intruder actually attack said parts of the network?
+                \end{itemize}
+        \end{itemize}
+\end{itemize}
+
+\subsection{Impersonation}
+\begin{itemize}
+    \item A person could try to log into a machine that does not belong to them by pretending to be an owner.
+    \item Steal passwords, guess, social engineering, sniff password, etc.
+    \item Or pretend to act like a machine itself.
 \end{itemize}
 
 \end{document}
