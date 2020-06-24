@@ -123,4 +123,91 @@
     \item Or pretend to act like a machine itself.
 \end{itemize}
 
+
+\section{Spoofing, Session Hijacking, Traffic Analysis, and Integrity Attacks}
+
+\subsection{Spoofing}
+\begin{itemize}
+    \item Pretending to be another object. For example, \lstinline{www.goggle.com} leading to a malicious site.
+    \item What one can do to defend against it as an owner is to register typos of the site and redirect it to the correct site.
+    \item Another way to spoof is via the evil twin attack for wifi access points.
+    \item Or ISMI catchers which cause all mobiles in the area to be attracted to the ISMI catcher rather than a real cell phone tower.
+    \item Traffic can also be spoofed --- it may let packets through because it is coming through port 80 and looks like HTTP even if is not safe traffic.
+\end{itemize}
+
+\subsection{Session Hijacking}
+\begin{itemize}
+    \item The TCP protocol sets up a state which the sender and receiver nodes can use to send packets in a secure manner.
+    \item The server will keep some session cookie in order to not have to redo the reidentification process from scratch.
+    \item But, someone could theoretically figure this out and pretend to be that client!
+    \item HTTPS prevents this.
+\end{itemize}
+
+\subsection{Traffic Analysis}
+\begin{itemize}
+    \item More of a privacy issue.
+    \item Sometimes, the mere existence of communication between two parties is sensitive and should be hidden!
+    \item Even encryption of this traffic isn't enough if the communication existing itself is important enough.
+    \item For TCP/IP packets, one could just sniff the packet to see the source/destination since this is required to check.
+    \item Some things like Tor can deal with this to at least hide some of this data.
+\end{itemize}
+
+\subsection{Integrity Attacks}
+\begin{itemize}
+    \item Attackers can modify packets while they are being transmitted.
+    \item A solution is to use a checksum (though this can obviously be easily modified to still work or even forged).
+    \item Another idea is to use a more complicated checksum that makes it unfeasible to do.
+    \item Another integrity attack is DNS cache poisoning.
+    \item A DNS links hosts names to numerical addresses.
+    \item This means an attacker could create the wrong mappings between a host and its IP address causing the server to save incorrect entries, which causes traffic to be rerouted to an IP of an adversary's choosing (poisoning).
+    \item Another way to do this is to just use a DNS server that responds to a DNS request with a fake response.  Your browser will use this response!
+\end{itemize}
+
+\subsection{Protocol Failures}
+\begin{itemize}
+    \item TCP/IP assumes all nodes implement protocols faithfully.
+    \item For example, TCP includes a mechanism that asks a sender node slow down if the network is congested.
+    \item An attacker could ignore this.
+    \item Or MS servers ignored congestion when pushing out updates.
+    \item Protocols are also complex and some behaviour may not be properly defined.
+    \item Some protocols have security features baked in --- this is not so great though if said feature is flawed.
+    \item For example, WEP.
+\end{itemize}
+
+\subsection{Website Vulnerabilities}
+\begin{itemize}
+    \item Accessing a URL causes the web server to return the actual HTML code needed to render the page\dots and attackers can examine this code to find vulnerabilities.
+    \item For example, what if the attacker sends a malicious URL with unsafe characters?
+    \item Parsing the URL request could lead to unfortunate things!
+    \item Website defacements are another example of exploiting website vulns.
+    \item Some website defacements are legit --- for example, when domain names are seized.
+    \item Another way website vulns can be done is by exploiting the HTTP protocol.
+        \begin{itemize}
+            \item Since it is stateless, web servers will ask clients to keep state info sometimes --- perhaps, for example, storing the client ID in the URL.
+            \item This can easily be exploited.
+        \end{itemize}
+    \item Other examples?  XSS/CSRF.  SQL injection.
+\end{itemize}
+
+\subsection{DOS Attacks}
+\begin{itemize}
+    \item A physical attack --- just jam a signal/cut a wire.
+    \item For a more general one, flooding a node by overloading its internet connection or processing priority is a way to deny service to legitimate users.
+    \item One attack is a ping flood --- a node receives a lot of ping packets.
+    \item Another is a ping of death --- a malformed ping packet to crash a computer.
+    \item Another theoretical attack is sending a non-existent IP address.  This is prevented via a TTL (time-to-live), which sets a max lifetime for a packet.  This prevents it from travelling forever.
+    \item A smurf attack is when an attacker spoofs the source address of a sender in the ping packet by setting it to the victim's address --- so it relies on many returning pings to overload someone.
+    \item An attacker can exploit the knowledge of implementation details about a node to make the node perform poorly.
+    \item SYN flooding:
+        \begin{itemize}
+            \item Normally, in TCP, SYN sets up a communication to the server, SYN-ACK is when the server sends an acknowledgement to the client, then the client sends back an ACK.
+            \item The server queues a SYN from the client and removes it when the ACK is received.
+            \item SYN flooding ties up the server by sending many SYNs and never an ACK.
+        \end{itemize}
+    \item Another attack is sending packet fragments that can't be reassembled\dots which ties up the server as it waits for or looks for (for example), a ``missing'' packet or something.
+    \item A black hole/packet drop attack discards any traffic destined for the victim.
+    \item DNS cache poisoning can also be used to deny service.
+    \item DDOS-ing is using many machines (often taken over by malware) to attack.
+\end{itemize}
+
 \end{document}

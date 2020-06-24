@@ -1,0 +1,47 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 12: Bayesian Networks Continued}
+\end{center}
+
+\section{Bayes Networks}
+\begin{itemize}
+    \item A node is conditionally independent of its non-descendants given its parents.
+    \item A Markov blanket of a node consists of its parents, its children, and its children's parents.
+    \item A node is conditionally independent of all other nodes given its Markov blanket.
+    \item Given a Bayesian network, how do we determine if two variables $X$ and $Y$ are independent if we observe the values of a set of variables $E$?
+    \item We define \emph{d-separation} as: A set of variables $E$ d-separates $X$ and $Y$ if $E$ blocks every undirected path between $X$ and $Y$ in the network.
+    \item If $E$ d-separates $X$ and $Y$, then $X$ and $Y$ are conditionally indep. given $E$.
+    \item Three cases:
+        \begin{itemize}
+            \item $A \rightarrow E \rightarrow B$ --- if $E$ is observed then it blocks 
+            \item $A \leftarrow E \rightarrow B$ --- if $E$ is observed then it blocks
+            \item $A \rightarrow E \leftarrow B$ --- if $E$ \emph{and} its descendants are \emph{not} observed they block
+        \end{itemize}
+\end{itemize}
+
+\section{Constructing Bayesian Networks}
+\begin{itemize}
+    \item For a joint probability distribution there are multiple correct Bayesian networks.
+    \item We prefer one network over another if it requires fewer probabilities (smaller and easier to work with).
+\end{itemize}
+
+\end{document}

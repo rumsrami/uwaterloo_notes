@@ -1,0 +1,70 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 13: Variable Elimination Algorithms}
+\end{center}
+
+\section{VE Motivation}
+\begin{itemize}
+    \item For something like $P(B = b | W = t \wedge G = t), b \in {t, f}$, our shorthand is $P(B | w \wedge g)$. 
+    \item This is equal to:
+        \[
+            P(B | w \wedge g) = \frac{P(B \wedge w \wedge g)}{P(b \wedge w \wedge g) + P(\neg b \wedge w \wedge g)}
+        \]
+    \item So for $P(B \wedge w \wedge g)$, we can say it's equal to:
+        \[
+            \sum_a \sum_e \sum_r P(B)P(e)P(r|e)P(a|B \wedge e) P(w|a)P(g|a)
+        \]
+        Such an expression would take 47 operations to do!
+    \item Note we can simplify this:
+        \[
+            P(B) \sum_a P(w|a)P(g|a) \sum_e P(e)P(a | B \wedge e)
+        \]
+        Note the $P(r|e)$ term is removed as summing over $r$ means it must equal 1.
+    \item This would take \emph{12} operations.
+\end{itemize}
+
+\section{VE Algorithm}
+\begin{itemize}
+    \item Use dynamic programming (do calculations once if possible) and exploit conditional independence to reduce the number of operations required.
+    \item VEA relies on factors and operations on factors.
+    \item A factor is a function from some random variables to a number.
+    \item For example, $f(X_1, X_2)$ could be $P(X_1 \wedge X_2)$ or $P(X_1 | X_2)$.
+    \item We define a factor for every conditional probability distribution in the Bayes net.
+    \item We can \emph{restrict} a factor by assigning a value to the variable in the factor.
+    \item If one restricts until all values have assigned values in the factor, it is now just a number (obviously).
+    \item \emph{Sum out} operations sum out a variable:
+        \[
+            (\sum_{X_1} f)(X_2,\cdots,X_j) = f(X_1 = v_1,\dots,X_j) + \cdots + f(X_1=v_k,\dots,X_j)
+        \]
+    \item We can also \emph{multiply} two factors together.  The product of two factors $f_1(X, Y)$ and $f_2(Y, Z)$ where $Y$ is in common will give $(f_1 \times f_2)(X, Y, Z)$.
+    \item \emph{Normalizing} divides each value by the sum of all the values.  This ensures that we have a valid probability distribution (ie: if we had values of 0.2 and 0.6, we would want 0.25 and 0.75 as probabilities).
+    \item The general VE algorithm:
+        \begin{enumerate}
+            \item Construct a factor for each conditional probability.
+            \item Restrict observed variables to their observed values.
+            \item Eliminate each hidden variable via multiplying and summing out.
+            \item Multiply remaining factors.
+            \item Normalize the resulting factor.
+        \end{enumerate}
+\end{itemize}
+
+\end{document}
