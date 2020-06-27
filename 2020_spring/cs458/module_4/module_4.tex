@@ -210,4 +210,69 @@
     \item DDOS-ing is using many machines (often taken over by malware) to attack.
 \end{itemize}
 
+\subsection{Botnets}
+\begin{itemize}
+    \item Many machines (usually taken over) under the control of some centralized computer that will attack when told to.
+    \item Usually the owner of the infected machine will not know.
+\end{itemize}
+
+\subsection{Active Code}
+\begin{itemize}
+    \item A server might ask a client to execute code on the server's behalf\dots obviously this could be dangerous if the active code triggers some attack.
+    \item There might be a sandbox.
+    \item Word macros, Java and ActiveX are some examples.
+\end{itemize}
+
+\subsection{Script Kiddies}
+\begin{itemize}
+    \item It's very easy to download and run scripts/attacks for cheap or free.
+    \item Hell, you can buy people's services to attack people.
+\end{itemize}
+
+\section{Network Controls}
+\begin{itemize}
+    \item Remember that using TCP/IP means that there is no actual permanent connection between the sender and receivers.
+    \item Always check inputs, never trust an input from a client.
+    \item One should use a whitelist of allowed characters/sites, \emph{not} a blacklist of forbidden ones.  This is obvious --- it's easier to specify what we want to allow to do and not worry about things we didn't think of!
+    \item Segment/separate your servers; don't use one machine if possible.
+    \item Your web servers (or anything that should be accessible outside) should not be trusted by other servers of the company.
+    \item Avoid single points of failure.
+    \item Have redundancy/syncing.
+\end{itemize}
+
+\section{Firewalls}
+\begin{itemize}
+    \item All traffic has to go through a small number of gates/choke points.
+    \item These should examine traffic.
+    \item Note firewalls cannot do anything for things inside its protection interacting with other things interacting within the firewall --- you can't keep out what's already in!
+    \item Note a firewall is an attractive target for attackers --- protecting something does paint a bit of a target on what you're protecting!
+    \item Four general ways to implement firewalls:
+        \begin{enumerate}
+            \item Packet filtering gateways/screening routers (stop certain packets from entering/exiting if they have specific addresses, ports, etc.)
+            \item Stateful inspection firewalls (keeps state to identify packets that belong together; looks to see if traffic is a new connection, replying to an existing connection, or not part of any connection and thus dropped)
+            \item Application proxies (client talks to proxy, proxy talks to server)
+            \item Personal firewalls (protect attacks on services running on the computer)
+        \end{enumerate}
+    \item Another approach is using a demilitarized zone (DMZ), which is a subnetwork that contains an organization's external services, accessible to the internet.
+    \item The external firewall protects DMZ, the internal firewall protects internal network from attacks lodged in the DMZ.
+\end{itemize}
+
+\section{Honeypots}
+\begin{itemize}
+    \item A machine that looks vulnerable and attract attackers.
+    \item Allow us to realize we are being attacked, and prepare/analyze their attacks.
+    \item Must be careful that an attacker doesn't realize they are being tracked.
+\end{itemize}
+
+\section{Intrusion Detection Systems (IDS)}
+\begin{itemize}
+    \item Host-based IDS: run on a host to protect that host.
+    \item This can monitor a lot of information about that host, but may miss information available to other hosts.
+    \item If the host gets subverted, the IDS likely gets subverted as well.
+    \item A network-based IDS runs on a node to protect all hosts attached to a network.
+    \item This also means it will have to rely on information available in monitored packets, but also that it's harder to subvert.
+    \item Signature-based IDSs can look for patterns of known attacks or behaviours that suggest an intrusion --- however this also means it can't be used to find unknown or new attacks.
+    \item Heuristic/anomaly-based IDSs look for behaviour that is out of the ordinary; and raising an alert when system activity doesn't resemble this model any more.
+\end{itemize}
+
 \end{document}
