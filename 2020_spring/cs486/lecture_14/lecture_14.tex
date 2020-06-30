@@ -1,0 +1,92 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 14: Hidden Markov Models}
+\end{center}
+
+\section{Umbrella Model}
+\begin{itemize}
+    \item Suppose you are in some underground facility and you want to know if it is raining, but you can only tell if it is raining when someone comes in with or without an umbrella.
+    \item Note that we assume this is noisy data --- maybe they come in with an umbrella but it isn't raining, or VV.
+    \item We could model this world with a series of time slices; each time slice contains a set RVs, some observable and some not observable.
+    \item $X_t$ represents an un-observable variable; in this case it is representing whether it rains ($R_1, R_2, \dots$).
+    \item $E_t$ represents an observable variable; in this case it is $U_1, U_2, \dots$ representing whether the director is carrying an umbrella.
+    \item In general, every state may depend on all previous states:
+        \[
+            P(X_t | X_{t-1} \wedge X_{t-2} \wedge \dots \wedge X_1)
+        \]
+    \item A problem with this is that as $t$ increases, the conditional probability distribution gets too large.
+    \item Our solution is to make the current state depend on a fixed number of states.
+\end{itemize}
+
+\subsection{Stationary Model}
+\begin{itemize}
+    \item A first-order Markov process is defined such that each state depends on the previous the one previous state.
+    \item So $P(X_t | dots) = P(X_t | X_{t-1})$.
+    \item A second-order Markov process allows each state to depend on the two previous states.
+    \item So now, $P(X_t | \dots) = P(X_t | X_{t - 1} \wedge X_{t - 2})$.
+    \item The Markov assumption states that the future is independent of the past given the present.
+    \item The stationary process model assumes two things:
+        \begin{enumerate}
+            \item The dynamics does not change over time.
+            \item The conditional probability distribution for each time step remains the same.
+        \end{enumerate}
+    \item By modelling as a stationary process, we simplify the world.  Some advantages of doing this is that it's simple and sometimes, natural choice (usually dynamics don't change IRL).
+    \item If the dynamics do change, often it means there is another variable that once incorporated, will no longer change the dynamics!
+    \item Only need a finite number of parameters for an infinite model.
+\end{itemize}
+
+\subsection{Sensor Model}
+\begin{itemize}
+    \item How does the evidence variable, $E_t$, at time $t$, depend on the previous and current states?
+    \item The sensor Markov assumption: each state is sufficient to generate its observations.
+    \item That is:
+        \[
+            P(E_t | X_t \wedge \cdots \wedge X_1 \wedge E_{t-1} \wedge \cdots \wedge E_1) = P(E_t | X_t)
+        \]
+\end{itemize}
+
+\section{Inference Tasks}
+\begin{itemize}
+    \item Common inference tasks:
+        \begin{itemize}
+            \item Filtering --- which state am I in right now?
+            \item Prediction --- which state will I be in tomorrow?
+            \item Smoothing --- which state was I in yesterday?
+            \item Most likely explanation --- which sequence of states is most likely to have generated the observations?
+        \end{itemize}
+    \item Note that a HMM is a Bayesian network, so variable elimination algorithm can be used!
+\end{itemize}
+
+\subsection{Filtering}
+\begin{itemize}
+    \item Given the observations up to today, which state am I in today?
+    \item For example, let's say we observed:
+        \begin{itemize}
+            \item Day 1: $P(R_1|u_1)$
+            \item Day 2: $P(R_2|u_{1:2})$
+            \item \dots
+            \item Day $n$: $P(R_2|u_{1:n})$
+        \end{itemize}
+        where $u_{1:n} = u_1 \wedge u_2 \wedge \cdots \wedge u_n$.
+\end{itemize}
+
+\end{document}

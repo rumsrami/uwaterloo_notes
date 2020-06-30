@@ -1,0 +1,67 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=c, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 458 --- Module 5: Internet Application Security and Privacy}
+\end{center}
+
+\section{Cryptography}
+\begin{itemize}
+    \item Recall Kerchhoffs' Principle/Shannon's Maxim --- \emph{assume the enemy knows the system}.
+    \item We assume that Eve:
+        \begin{itemize}
+            \item May know the algorithm
+            \item May know part of the plaintext
+            \item May have many plaintext/ciphertext pairs
+            \item May have access to an encryption/decryption oracle
+        \end{itemize}
+\end{itemize}
+
+\subsection{Secret-key Encryption}
+\begin{itemize}
+    \item AKA symmetric encryption.
+    \item Requires using a key to encrypt and decrypt the message.
+    \item A theoretically perfect cryptosystem is the OTP; but this is very hard to use in practice since any key reuse ruins it, and must be truly random (pseudorandomness is not enough).
+    \item SKES relies on mathematical problems that are hard to do in the opposite direction.  This may not hold true with quantum computing for some currently-used options!
+    \item Two main types --- stream and block ciphers.
+    \item A stream cipher takes in a keystream, XORs with the PT, and gets the CT.
+    \item Can be very fast, and useful if you need to send a lot of data securely, but can be tricky to use correctly.
+    \item To avoid key re-use, we may use IVs/salts to help make the key different.
+    \item Block ciphers operate by taking part of the plaintext and spitting out the corresponding ciphertext.
+    \item What happens when the PT is larger than one block?  We have \emph{modes of operation} for this:
+        \begin{itemize}
+            \item ECB uses the same keystream for each block --- but this degrades into a shitty substitution cipher!
+            \item Other examples are CBC, CTR, GCM, etc, that starts with an IV. 
+        \end{itemize}
+    \item One problem with SKES is how to share keys?
+\end{itemize}
+
+\subsection{Public-key Encryption}
+\begin{itemize}
+    \item Allows Alice to send a secret message to Bob without a pre-arranged shared secret!
+    \item Each user has a public key and a private key.
+    \item These use a lot of math to allow for Alice to encrypt via Bob's public key and Bob to decrypt via his private key. 
+    \item One downside with PKES is that a key size must be \emph{much} larger to get equivalent security to, for example, an AES SKES key.
+    \item Another is that with larger keys, means more time.  This is slow to practically use for some use cases!
+    \item We may instead use \emph{hybrid} cryptography.  This uses PKES to encrypt smaller messages, like a key for a SKES system, then encrypt the messages via SKES!
+\end{itemize}
+
+
+\end{document}
