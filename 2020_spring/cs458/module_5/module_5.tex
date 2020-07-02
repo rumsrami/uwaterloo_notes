@@ -63,5 +63,59 @@
     \item We may instead use \emph{hybrid} cryptography.  This uses PKES to encrypt smaller messages, like a key for a SKES system, then encrypt the messages via SKES!
 \end{itemize}
 
+\section{Integrity}
+\begin{itemize}
+    \item How do we check if a message was changed in transit?
+    \item The simplest answer is a checksum.  For example, credit card numbers use checksums.
+    \item However, simple checksums are easily faked by changing specific parts of the data; and so for our messages, this is not viable!
+    \item So, we need a ``cryptographic'' checksum that Mallory could not easily forge.
+    \item Hash functions take in an arbitrary length string and output a fixed length string, called a message digest.
+    \item Hash functions should have 3 properties:
+        \begin{enumerate}
+            \item Preimage resistance --- given $y$, it should be one-way.
+            \item Second preimage resistance --- given $x$, it is hard to find $x' \neq x$ where $h(x) = h(x')$.
+            \item Collision resistance --- it is hard to find \emph{any} two distinct $x, x'$ where $h(x) = h(x')$.
+        \end{enumerate}
+    \item Collisions are always easier to find than preimages or second preimages due to the birthday paradox.
+    \item Usually a square root of the total size possible!
+    \item For SHA-1, for example, $2^{160}$ work to find a PI or SPI, but $2^{80}$ to brute force a collision.
+    \item But you can't just send an unencrypted message and its hash to get integrity assurance, as then Mallory could change the message and give her own message digest!
+    \item So, there has to still be a secure way of sending and/or storing the message digest.
+\end{itemize}
+
+\section{Authentication}
+\begin{itemize}
+    \item Message authentication codes, or MACs, are a keyed hash function.  Only those who know the secret key can generate/check the MAC.
+    \item Typically when we combine confidentiality, we encrypt then MAC.
+    \item Repudiation is when Bob can ensure that Alice is the one who sent the message $M$ and it has not been modified.
+    \item With something like a shared system, this is impossible, as Alice could claim Bob, who also has access to the hash system, made it up.
+    \item Both repudiation and non-repudiation can be desirable based on the situation.
+    \item For non-repudiation, we need a true digital signature, where Bob can prove to a third party that Alice sent it, and Bob cannot have forged it.
+    \item We could use a public-key system to do so.  By Alice signing via her private signature key, then Bob could verify the message with Alice's public verification key.
+    \item We often use hybrid signatures, as signing large messages is slow.  Alice can send an unsigned message and a signature on the hash of their message, for example.
+    \item Typically, the signature key pair is long-lived, while the encryption key pair is short lived.  This helps give perfect forward secrecy.
+    \item When creating a new encryption key pair, Alice uses her signing key to sign her new encryption key and Bob uses Alice's verification key to verify this.
+\end{itemize}
+
+\subsection{Key Management}
+\begin{itemize}
+    \item One of the hardest problems if PKES is how do we manage keys?
+    \item Bob could find Alice's verification manually, for example (SSH).
+    \item Or maybe get a friend to tell them, via a web of trust (PGP).
+    \item Or trust a third party to tell them (Certificate Authority, TLS/SSL).
+    \item A CA generates a certificate consisting of Alice's personal info and her verification key.  This certificate is signed with the CA's signature key.
+    \item So, one only needs the verification key of the root CA to verify the certificate chain.
+\end{itemize}
+
+\section{Security Controls using Cryptography}
+\begin{itemize}
+    \item In what situations might it make sense to use cryptography as a security control?
+    \item Remember there needs to be some separation, since any secrets need to available to legitimate users but not the adversary.
+    \item In some situations, this makes SKES hard.  If your web browser can decrypt the file containing passwords, then an adversary can as well!
+    \item PKES would be fine if the local machine only has access to the public part of the key.
+    \item But this would mean you can't decrypt or sign.
+    \item We can also encrypt code.  The processor would have to decrypt instructions before executing them; malware can't spread without knowing a processor's keyg.
+    \item We can encrypt data.  This provides protection if hardware containing data is stolen.  It doesn't protect against legitimate users or malware or someone who can access the device while it is operational/from memory.
+\end{itemize}
 
 \end{document}
