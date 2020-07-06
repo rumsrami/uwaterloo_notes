@@ -1,0 +1,77 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 16: Intro to Decision Theory and Decision Networks}
+\end{center}
+
+\section{Decision Theory}
+\begin{itemize}
+    \item Combines probability theory and utility theory.
+    \item How should an agent act in an uncertain world?
+    \item Recall probability theory is what an agent should believe based on evidence, and utility theory is what the agent wants.
+    \item In other words, an agent should choose the action that maximizes the expected utility.
+    \item Unfortunately, it's easier said than done to get the \emph{absolute best utility} --- finding if the utility is the best is NP-hard most of the time, and requires checking into the future.
+    \item Hence, we use expected utility.
+\end{itemize}
+
+\section{Constructing a Decision Network}
+\begin{itemize}
+    \item Given the situation (robot puts on pads to lower damage, choose between a short or long route, short route may cause it to slip):
+        \begin{itemize}
+            \item RV: $A$ represents whether an accident occurs or not.
+            \item Decision variables/actions: $S$ is whether it takes the short route, $P$ is whether it puts on pads.
+        \end{itemize}
+    \item We have 3 types of nodes:
+        \begin{itemize}
+            \item Chance nodes --- represent random variables (similar to a Bayesian network).
+            \item Decision nodes --- represent actions (decision variables).
+            \item Utility nodes --- represent the agent's utility function on states (the ``happiness'' in each state).
+        \end{itemize}
+\end{itemize}
+
+\section{Evaluating a Decision Network}
+\begin{itemize}
+    \item How do we choose an action?
+        \begin{enumerate}
+            \item Set evidence variables for the current state.
+            \item For each possible value of a decision node:
+                \begin{enumerate}
+                    \item Set decision node to value
+                    \item Calculate posterior probability for parent nodes of the utility node
+                    \item Calculate expected utility for the action
+                \end{enumerate}
+            \item Return the action with the highest expected utility.
+    \end{enumerate}
+    \item Often, we'll get expected utilities that are functions --- we will define \emph{policies} to select which choices to make based on the function's parameters (ie: if $q > 0.4$ then pick policy A, otherwise pick policy B\dots).
+\end{itemize}
+
+\section{Variable Elimination}
+\begin{itemize}
+    \item In our original example, we can actually combine Short and Pads together.
+    \item For a single-stage decision network:
+        \begin{itemize}
+            \item We prune all the nodes that are not ancestors of the utility node.
+            \item Then, sum out all chance nodes.
+            \item For the single remaining factor, return the maximum value and the assignment that gives the maximum value.
+        \end{itemize}
+\end{itemize}
+
+\end{document}

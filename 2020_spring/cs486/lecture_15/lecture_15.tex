@@ -1,0 +1,39 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 15: Hidden Markov Models, Part 2}
+\end{center}
+
+\section{Smoothing}
+\begin{itemize}
+    \item Given the observations up to today, which state were we in yesterday?
+    \item Smoothing requires recursion.
+    \item How do we calculate $P(R_k|u_{1:t}), 1 \leq k < t$?
+    \item Use forward recursion to get $f_{1:t}$.  Then use backwards recursion to build from $b_{t+1:t}$.
+    \item We see:
+        \begin{align*}
+            P(R_k|u_{1:t}) &= P(R_k|u_{1:k} \wedge u_{k+1:t}) \\
+                           &= \alpha P(R_k|u_{1:k})P(u_{k+1:t}|R_k \wedge u_{1:k}) \\
+                           &= \alpha P(R_k | u_{1:k}) P(u_{k+1:t}|R_k)
+        \end{align*}
+\end{itemize}
+
+\end{document}
