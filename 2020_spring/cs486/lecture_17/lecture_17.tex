@@ -1,0 +1,93 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 17: Decision Networks}
+\end{center}
+
+\section{The Weather DN}
+\begin{itemize}
+    \item Suppose we want to ask --- do we take our umbrella or not?
+    \item Depending on the weather, we may bring our umbrella.
+    \item But we don't actually see the weather directly, we see the \emph{forecast}.
+    \item We can draw it like this:
+        \begin{lstlisting}
+        (Weather) ->  <Utility>
+            |             A
+            V             |
+        (Forecast) -> [Umbrella]
+        \end{lstlisting}
+    \item A policy specifies what the agent should do under all contingencies.
+    \item For each decision variable, a policy specifies a value for the decision variable for each assignment of values to its parents.
+    \item So, for our weather decision network, how many policies are there?
+    \item Forecast has 3 possible values, and for each value of forecast, there are 2 possible decisions.  This gives $2^3 = 8$ possible policies.
+    \item We have two approaches to solving the network problem:
+        \begin{itemize}
+            \item Brute force: solve every policy's expected utility, and choose the best one.
+            \item VEA.
+        \end{itemize}
+    \item Obviously we prefer VEA since brute force can result in having to calculate a very large number of policies compared to the number of nodes!
+    \item Consider the policy $\pi_1$:
+        \begin{itemize}
+            \item Take the umbrella if the forecast is cloudy
+            \item Leave the umbrella at home otherwise
+        \end{itemize}
+    What is the expected utility of this policy?
+    \item In this case, using a brute force approach:
+        \begin{align*}
+            EU(\pi_1) &= P(norain) * P(sunny|norain) * u(norain, leaveit)\\
+                      &+ P(norain) * P(cloudy|norain) * u(norain, takeit)\\
+                      &+ P(norain) * P(rainy|norain) * (norain, leaveit) \\
+                      &+ P(rain) * P(sunny|rain) * u(rain, leaveit) \\
+                      &+ P(rain) * P(cloudy|rain) * u(rain, takeit) \\
+                      &+ P(rain) * P(rainy|rain) * u(rain, leaveit) \\
+                      &= 0.7 * 0.7 * 100 + \dots + 0.l3 * 0.6 * 0 \\
+                      &= 64.05
+        \end{align*}
+    \item We see that this could take too long.  We'll now investigate VEA.
+\end{itemize}
+
+\subsection{VEA}
+\begin{itemize}
+    \item The general algorithm is as follows:
+        \begin{enumerate}
+            \item Remove all variables that are not ancestors of the utility node.
+            \item Create factors.
+            \item While there are decision nodes remaining:
+                \begin{enumerate}
+                    \item Sum out each RV that is not a parent of a decision node
+                    \item Find the optimal policy for the last decision
+                \end{enumerate}
+            \item Return the optimal policies.
+            \item Sum out all the remaining RVs to get the expected utility of the optimal policy.
+        \end{enumerate}
+    \item Let's apply this to our weather example:
+        \begin{enumerate}
+            \item Nothing to be done.
+            \item Define three factors, f1(Weather), f2(Forecast, Weather), f3(Weather, Umbrella)
+            \item Now:
+                \begin{enumerate}
+                    \item Weather is not a parent of any decision node.  Sum out Weather.  For example, f1 * f2 * f3 = f4(Weather, Forecast, Umbrella), then sum out f4 to get f5(Forecast, Umbrella).
+                    \item Now let's find the optimal policy for, say, Umbrella.
+                \end{enumerate}
+        \end{enumerate}
+\end{itemize}
+
+\end{document}

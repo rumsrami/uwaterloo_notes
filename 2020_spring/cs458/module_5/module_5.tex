@@ -118,4 +118,267 @@
     \item We can encrypt data.  This provides protection if hardware containing data is stolen.  It doesn't protect against legitimate users or malware or someone who can access the device while it is operational/from memory.
 \end{itemize}
 
+\section{Link Layer Security Controls}
+\begin{itemize}
+    \item Link-layer security controls provide protection at the local area network level.
+    \item Typically LAN users are not expected to be malicious, so there's a lot less security-specific controls at the link layer.
+    \item For example, physical security controls protecting wires.
+    \item Or restricting their internet access for some reason.
+    \item A potential link-layer security vulnerability is ARP spoofing.
+        \begin{itemize}
+            \item ARP, or Address Resolution Protocol, is how IP addresses get mapped to MAC addresses via IPV4.
+            \item When the network wants to find a MAC on the network, it sends an ARP request, and the host that owns said MAC replies.
+            \item And it caches this; so that way the next time it needs to send something to said MAC, it already knows where to find it.
+            \item ARP is stateless, though, so if a host gets a reply to the ARP request, even if it didn't send a request, it'll add the reply info to its cache.
+            \item So an adversary can poison the cache by sending fake ARP requests containing incorrect information that wasn't requested, if the adversary is on your LAN!
+        \end{itemize}
+    \item So how can we stop this?
+        \begin{itemize}
+            \item A physical way is, well, don't let people connect random shit into your switches.
+            \item But is there a software solution?
+            \item We can potentially watch for when there are more ARP replies than requests.
+            \item Or we could create ``trusted'' and ``untrusted'' ports on a bridge/router and only allow ARP replies from trusted ports.
+            \item If the ARP reply comes from an untrusted port, make sure to check the details with the DHCP table at the transport layer --- if this doesn't match up, then close the port!
+        \end{itemize}
+    \item Another attack is MAC flooding.
+        \begin{itemize}
+            \item The Content Addressable Memory (CAM) table tracks port numbers, the MAC associated with the port, and the IP if used.  This is faster than storing stuff in RAM.
+            \item But it is a fixed size --- a MAC flooding attack exploits this by sending many false ARP packets to fill up the CAM table.
+            \item The switch ends up confused and regresses to ``hub'' mode, sending traffic to everyone, including the adversary.
+        \end{itemize}
+\end{itemize}
+
+\subsection{WiFi}
+\begin{itemize}
+    \item Before WiFi, compromising link-layer required premise access --- this obviously changes when you add in wireless access.
+    \item So, when WiFi was introduced, WEP was introduced to provide some security.
+    \item WEP promised to fulfil 3 security goals:
+        \begin{itemize}
+            \item Confidentiality
+            \item Access control
+            \item Data integrity
+        \end{itemize}
+    \item Unfortunately, WEP was, to put it nicely, ``shit''.  And thus, it provided absolutely none of these goals, because it was a broken piece of crap that was not designed with appropriate feedback/input.
+    \item So how did WEP work?
+        \begin{itemize}
+            \item The sender and receiver share a secret key $k$ that is 40 or 104 bits long.
+            \item For the message, calculate a cheksum that does not depend on $k$.  This is for integrity.
+            \item Then, pick an IV (24 bit long number), $v$, and generate a keystream via RC4, so we have $RC4(v, k)$.
+            \item Now, XOR the message $M$ and the checksum $c(M)$ with the keystream $RC4(v, k)$ to get our ciphertext ($P$)!
+            \item Now we transmit $v$ and the ciphertext wirelessly\dots
+            \item Now getting $v$ and the $P$, if they know $k$, then they can also get $RC4(v, k)$.  Then, XOR $P$ and $RC4(v, k)$ to get $M'$, the plaintext, and $c'$, the checksum.
+            \item Now compare $c'$ to $c(M')$ to verify.  Done!
+        \end{itemize}
+    \item So \emph{what's wrong}?
+        \begin{itemize}
+            \item \textbf{Problem 0} --- every WEP uses the \emph{same} bloody secret key.  So \emph{everyone} knows this ``````secret'''''' keys!
+            \item \textbf{Problem 1} --- They \emph{did} realize that they needed to use an IV to add some variety to the key.  But $v$ is only 24 bits long.  It is \emph{very} easy to break $v$, there are only $2^{24}$ combinations!  So, no security.
+            \item \textbf{Problem 2} --- The checksum used in WEP is CRC-32, which is shit for this job.  It does not protect against malicious errors, and CRC is already used to detect random errors, so the checksum does nothing.  It's also independent of $k$ and $v$, and \emph{linear}.  So it does squat for data integrity too.
+        \item \textbf{Problem 3} --- What if Mallory wants to inject a new message $F$ into a WEP-protected network?  They only need a \emph{single} PT-CT pair that has been used and they now know the $RC4(v, k)$ of $v$ and the keystream, allowing them to create ciphertext $C'$ for their message by doing $[F, c(F)]$ XOR $RC4(v, k)$ and transmit $v, C'$, the latter of which is a correct encryption of $F$.  So it doesn't provide access control either.
+
+                Also the PT-CT pair is given to Mallory for free as part of the auth. protocl.
+            \item \textbf{Problem 4} --- The auth. protocol involves the AP sending a challenge string to the client, and the client sends back the challenge, WEP-encrypted with shard-secret $k$ --- so this means the adversary sees the PT and the CT of the challenge!  So Mallory can execute the authentication protocol.
+            \item \textbf{Problem 5} --- Mallory can even decrypt the packets!  Since the AP knows $k$, it means the adversary can trick the AP into decrypting the packet for them.
+            \item \textbf{Problem 6} --- The WEP key is easily recoverable even if an IV is used by exploiting RC4, since RC4 using similar keys means the output keystream is weak.
+        \end{itemize}
+    \item So what replaced WEP?  WPA.
+    \item How did WPA improve on WEP?
+        \begin{itemize}
+            \item The client's key is a 128-bit key that gets mixed with the client's MAC address.
+            \item Use a 48-bit IV.
+            \item The key changes very frequently.
+            \item Use sequence counters to prevent replay.
+            \item Use an actual MAC (like auth. MAC, not MAC address MAC).
+            \item Can work on most older WEP hardware.
+        \end{itemize}
+    \item This was a patch to WEP as a short-term solution, while WPA2 was being developed.
+    \item Now, we usually use WPA2.
+        \begin{itemize}
+            \item Uses AES to do the encryption rather than RC4, which WPA still used.
+            \item Designed from scratch with experts.
+        \end{itemize}
+    \item A similar problem was mobile phones, where the original GSM implementation was broken.
+\end{itemize}
+
+\section{Network-layer Security}
+\begin{itemize}
+    \item The communication protocol used at the network layer is IP.
+    \item We have IPv4 and IPv6.
+    \item IPSec is a security protocol to secure one network to another.
+    \item IPSec gives us confidentiality (hides the real source/destination IP address and encrypts payloads) and adds checks to ensure integrity.
+    \item IPSec also includes a way to exchange keys.
+    \item One way of hiding traffic is ``tunnelling'' (not to be confused with IPSec tunnel mode).  This sends a message of one protocol in another out of order of the usual protocol nesting sequence.
+    \item A more common approach is using a VPN --- basically use gateways at the origin and destination to make the physically different networks between those gateways appear to be a single network --- this means that an adversary can't read or modify traffic within the VPN!  Any observer would see the origin as the gateway.
+    \item IPSec is one way to set up a VPN.  There are two modes with IPSec:
+        \begin{itemize}
+            \item Transport mode (usually between endpoint and gateway):
+                \begin{itemize}
+                    \item Useful for connecting a device to some home network
+                    \item Only the contents of the original IP packet are encrypted and authenticated.  Source/destination IPs are exposed.
+                \end{itemize}
+            \item Tunnel mode (gateway to gateway):
+                \begin{itemize}
+                    \item For connecting two networks
+                    \item The contents and the header of the original IP packet are encrypted and authenticated; and all of this is placed inside a new IP packet destined for the remote VPN gateway.
+                \end{itemize}
+        \end{itemize}
+\end{itemize}
+
+\section{Transport Layer Security}
+\begin{itemize}
+    \item The transport layer of the stack allows host-to-host (ie: network-to-network) data movement.
+    \item The main communication protocols at the transport layer are TCP and UDP.
+    \item The security protocols are TLS/SSL, and the privacy mechanism is TOR.
+    \item A segment contains of the message and the TCP/UDP protocol + port number.
+\end{itemize}
+
+\subsection{SSL/TLS}
+\begin{itemize}
+    \item The way TLS (v1.2) works is:
+        \begin{enumerate}
+            \item Client connects to the server, indicates it wants to speak TLS, and advertises what ciphersuites it knows.
+            \item Server sends its certificate to clients, containing useful information like its host name, public key, signature from CA, which ciphersuite to use, etc.
+            \item Clinet validates server's certificate.
+            \item If good, the client and server run a key agreement protocol to determine keys for symmetric encryption and MAC algorithms.  Communiaction now proceeds using the chosen symmetric encryption and MACs.
+        \end{enumerate}
+    \item TLS 1.2 provides:
+        \begin{itemize}
+            \item Server auth.
+            \item Message integrity
+            \item Message confidentiality
+            \item And optionally, client auth.
+        \end{itemize}
+    \item TLS 1.3 also provides:
+        \begin{itemize}
+            \item Perfect forward secrecy --- so compromising the key in the future will not affect past messages!
+            \item A way to validate you are talking to the server you think you are talking to.
+            \item Many compromised/deprecated encryption schemes are not allowed.
+        \end{itemize}
+    \item TLS is very successful and is important given how popular and used WiFi is.
+\end{itemize}
+
+\subsection{Privacy Enhancing Technologies (PET) and TOR}
+\begin{itemize}
+    \item We have nodes known as Onion Routers.  There are many scattered around the Internet (about 7000).
+    \item Let's say Alice wants to connect to Bob's web server without revealing her IP address.
+        \begin{enumerate}
+            \item First, she finds an entry guard node, $n_1$.  She establishes via PKES an encrypted communication channel to $n_1$.
+            \item She then gets $n_1$ to talk to another node, $n_2$.  They share a new encrypted channel between $n_1$ and $n_2$.  So, Alice knows the second new key so she can talk to $n_2$ via $n_1$, and $n_2$ will know about $n_1$ but not know who Alice is.
+            \item This goes on until the last node connects to the website.
+        \end{enumerate}
+    \item The whole connection is called a circuit.
+    \item The last node is the exit node.
+    \item Typically 3 hops are required.  More hops can be added but this is a speed-privacy tradeoff.
+    \item Remember, this gives \emph{privacy}, not security.
+    \item So the server has no idea who Alice is at the end!
+    \item So, sending messages with TOR:
+        \begin{itemize}
+            \item Alice shares 3 (we assume 3 hops) secret keys, $k_1, k_2, k_3$, with nodes $n_1, n_2, n_3$ respectively.
+            \item When Alice wants to send a message $M$ she sends $E_{k_1}(E_{k_2}(E_{k_3}(M)))$.
+            \item Node $n_1$ uses $k_1$ to decrypt the outer layer, $n_2$ uses $k_2$, etc., and the final destination will get $M$.
+        \end{itemize}
+    \item When receiving messages:
+        \begin{itemize}
+            \item $n_3$ encrypts message reply $R$ with $k_3$, etc., and Alice has to decrypt all levels where she knows all keys.
+        \end{itemize}
+    \item Note that the node $n_1$ will know that Alice is using Tor, and that her next node is $n_2$, but they won't know which website Alice is visiting.
+    \item And $n_3$ will know some Tor user from $n_2$ is visiting, but not who the user is.
+    \item The website itself only knows that it got a connection from Tor node $n_3$.
+    \item Note, the connection between $n_3$ and the website is not necessarily encrypted --- you must also use something like HTTPS to get end-to-end encryption!
+\end{itemize}
+
+\subsection{Anonymity and Pseudonymity}
+\begin{itemize}
+    \item We have a ``nymity'' sliders, where we go from being identifiable to totally anonymous.
+        \begin{itemize}
+            \item ``Verinymity'' is something that positively identifies who are you are --- there is no anonymity, and you are identifiable.  For example, personal identification documents like a passport.
+            \item ``Persistent pseudonymity'' is a link between who you are and who you claim to be.  You are only anonymous to the extent that nobody can connect your ``false'' identity to your real one.  For example, usernames.
+            \item Linkable anonymity is when patterns about your behaviour are known, but who you are isn't.
+            \item Unlinkable anonymity is when there isn't a link between who you claim to be, your behaviour, and who you are.
+        \end{itemize}
+\end{itemize}
+
+\section{Application Layer Security}
+\begin{itemize}
+    \item At this layer this is what has been received from the network.
+    \item We deal with 3 ways of achieving security/privacy at the application layer:
+        \begin{itemize}
+            \item Remote login(ssh), email anonymity
+            \item PGP
+            \item Instant messaging, off-the-record messaging
+        \end{itemize}
+\end{itemize}
+
+\subsection{SSH and Email Anonymity}
+\begin{itemize}
+    \item Two main ways to authenticate with ssh:
+        \begin{itemize}
+            \item Send a password over an encrypted channel
+            \item Sign a random challenge with your private key
+        \end{itemize}
+    \item What if we want anonymity over something non-interactive like email?
+        \begin{itemize}
+            \item Anonymous remailers allow you to send email without revealing your email address!
+            \item Obviously this provides some issue as how do you, uh, reply?
+            \item Pseudonymity is useful in the context of email if you want to have a conversation (ie: mapping).
+        \end{itemize}
+    \item In regards to remailers:
+        \begin{itemize}
+            \item ``Type 0'' remailing services basically just changed the ``from'' address to something else.  Replies to the anonymous email get backed to your real address.  Note there is no encryption here.
+            \item ``Type I'' remailing services remove the central point of trust from Type 0, and messages are sent through a chain of remailers.  Each step is encrpyted to avoid observers from following the messages, and remailers will delay and reorder messages.  This does drop pseudonymity!
+            \item ``nym'' servers map pseudonyms to reply blocks that contain a nested encrypted chain of type I remailers, so attaching your message to the end of one of these reply blocks causes it to be sent through the chain and eventually delivered to the nym owner.
+            \item alt.anonymous.messages will just post their messages and public key to a forum, and when I reply to a message I encrypt via Bob's public key and upload publicly on a board.  Anything Bob can decrypt is for him.  Anything he can't is not.
+            \item ``Type II'' remailers use constant length messages to avoid observers watching a large file travelling through the network.  There is no way to reply beyond including sender information in the body of the message.
+            \item ``Type III'' remailers allow sending and receiving anonymous emails.  Messages are broken into equal sized chunks and sent encrypted node-to-node a la onion routing.
+        \end{itemize}
+\end{itemize}
+
+\subsection{PGP}
+\begin{itemize}
+    \item PGP, ``Pretty Good Privacy''.
+    \item Not really about anonymity, but about protecting the contents of the email messages, and providing digital signatures on email messages so you can be sure the message came from someone.
+    \item We're going to need four things for Alice and Bob to communicate:
+        \begin{enumerate}
+            \item A public encryption key
+            \item A private decryption key
+            \item A private signature key
+            \item A public verification key
+        \end{enumerate}
+    \item To send a message $M$, she signs it with her signature key and encrypts the message + signature with Bob's public encryption key.
+    \item Bob decrypts this with his private decryption key and uses Alice's verification key to check the signature.
+    \item PGP automatically manages this, as well as allows you to sign your keyring with your own key to create a web of trust.  Let's explain:
+        \begin{itemize}
+            \item So, how does Alice get the authentic copy of Bob's public key, and not, say, Mallory giving the wrong key?
+            \item We don't have CAs here!
+            \item Nor could Bob just put his copy of his public key online or something, as this isn't enough to be secure!  How can we trust, again, that this is actually Bob, or is it just ``Bob'' putting ``Bob's'' public key online?
+            \item We can use fingerprints --- a crytographic hash of a key --- and assuming the hash function is good we can't forge this!
+            \item If our hash is smaller than our public key, then it's much easier to share.
+            \item So, we could verify (say, over phone) that the fingerprint matches, and that's enough, rather than matching the \emph{entire} public key.
+            \item But what if we can't contact the person and be sure that's them?  For example, let's say I don't know Bob, I can't verify if the person I'm speaking to on the phone is going to be Bob.
+            \item We can sign keys!  Once Alice has verified Bob, then she can use her signature key to sign Bob's key.  So if you trust Alice, you trust Bob.
+            \item One could hold key signing parties to help build these webs of trust.
+            \item PGP manages \emph{this} automatically.  This is how we can manage trust in a more practical manner, without CAs!
+        \end{itemize}
+    \item But what if someone breaks into Bob's computer?  They could decrypt about past messages and learn the content of those messages!  And they now have proof that Alice has sent those messages (no non-repudiation)!
+    \item So Bob losing his laptop compromises Alice!
+    \item So, PGP creates a lot of incriminating records.  Alice has to be careful based on what Bob does!
+    \item If we want messages where we don't want any record or proof of the conversation --- these conversations are called "off-the-record" (OTR) conversations.  There is no way to prove the conversation has ever taken place, both parties can just deny that they ever said anything!
+\end{itemize}
+
+\subsection{OTR}
+\begin{itemize}
+    \item In Canada, both parties must agree to record a commercial conversation.
+    \item In a personal conversation only one party must consent.
+    \item We can have OTR conversations, and it is illegal to record a phone conversation if you aren't a party to the conversation.
+    \item What about online?
+    \item We use shared-key authentication --- Alice and Bob share the same MAC key (MK).
+    \item Only Alice and Bob know MK and they both use MK to compute the MAC.
+    \item Bob cannot prove Alice generated the MAC, but neither can anyone else.
+    \item This thus gives Alice a measure of deniability.
+    \item OTR offers confidentiality, authentication, and perfect forward secrecy --- all along with deniability --- assuming that keys are erased.
+    \item For example, the Signal protocol provides forward secrecy and improved deniability.
+    \item By constantly rotating session keys we enable perfect forward secrecy,
+    \item By using triple DH, we create deniable authenticated key exchanges, so anyone could have theoretically forged the convo. using only their public keys!
+\end{itemize}
+
 \end{document}
