@@ -1,0 +1,81 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 18: Markov Decision Processes, Part 1}
+\end{center}
+
+\section{MDP --- Introduction}
+\begin{itemize}
+    \item In some problems, we have finite stages.  But in other problems, we have to solve ongoing problems (perhaps it has an infinite time horizon).
+    \item We also define an \emph{indefinite} time horizon --- this would be when the agent knows it will \emph{eventually} stop, but we don't know when.  An infinite horizon will potentially go on forever.
+    \item We also may calculate the utility at the end for a finite problem, but for an infinite/indefinite horizon problem, it makes more sense to do a sequence of rewards for each time step.
+    \item We can model a MDP with $S$ being a set of states, $A$ being a set of actions, and $R$ being a set of reward functions.  $P$ represents transition probabilities.
+\end{itemize}
+
+\section{Rewards}
+\begin{itemize}
+    \item $R(s)$ is the reward of entering state $s$.
+    \item We consider 3 types of rewards:
+        \begin{itemize}
+            \item Total reward --- adds all reward functions until we hit the current state.  This wouldn't work though if we have infinite time steps, since we would have infinite reward functions.
+            \item Average reward --- we now take the total reward but multiply it by $\dfrac{1}{n}$, where $n$ approaches infinity.  But if the total reward is finite, the average reward is 0!
+            \item Discounted reward --- $R(s_0) + \gamma R(s_1) + \gamma^2 R(s_2) + \dots$, where $0 \leq \gamma < 1$.  That is, we want the get rewards sooner rather than later.  The ``discount factor'' makes future rewards worse than present ones.  The discount factor is also useful to help model the fact that the future may not occur --- there might be a chance that our states will end at the next step!
+        \end{itemize}
+\end{itemize}
+
+\section{Variations of MDP}
+\begin{itemize}
+    \item A fully observable MDP is when the agent knows what state it is in.
+    \item A partially observable MDP (POMDP) combines a MDP and a hidden Markov model --- the agent may not know what state it is in, but it can get some noisy signal of the state.
+\end{itemize}
+
+\section{Policy}
+For the following, we use a ``grid world'' as such:
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+        \hline
+          & 1     & 2 & 3 & 4  \\ \hline
+        1 & Start &   &   &    \\ \hline
+        2 &       & X &   & -1 \\ \hline
+    3 &       &   &   & +1 \\ \hline
+    \end{tabular}
+\end{table}
+\begin{itemize}
+    \item The robot starts at, well, start, and has a chance of going the correct direction, or bumping left, or bumping right.  We could use $80\%, 10\%, 10\%$ as our split.
+    \item A policy specifies what the agent should do as a function of the current state.
+    \item A policy is:
+        \begin{itemize}
+            \item non-stationary if it is a function of the state and the time
+            \item stationary if it is a function of the state
+        \end{itemize}
+    \item The optimal policy of the grid world changes based on $R(s)$ for any non-goal state $s$.  This would show a careful balancing of risk and reward.
+    \item Based on our $R(s)$ function, we can see that:
+        \begin{itemize}
+            \item If $R$ is very negative, it tries to take the shortest route to the nearest exit, regardless of whether it is -1 or +1.
+            \item If $R$ is moderately negative, if takes the shortest route to the $+1$ state, though it will be willing to risk the $-1$ state.
+            \item If $R$ is a bit negative, it will be conservative and aim to prefer safer routes (near the bottom) to avoid falling into the -1 state by accident.
+            \item If $R$ is only a tiny bit negative or 0, it takes no risk and heads directly away from the -1 state to avoid it, though it may still hit the wall a few times.
+            \item If $R$ is positive, it \emph{avoids} the goal states!
+        \end{itemize}
+\end{itemize}
+
+\end{document}
