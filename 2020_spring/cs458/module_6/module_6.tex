@@ -1,0 +1,138 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=c, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 458 --- Module 6: Database Security}
+\end{center}
+
+\section{Database Concepts}
+\begin{itemize}
+    \item Normalization --- how to avoid having rows that are too tightly integrated when they shouldn't.  For example, if you had prices of an activity tied to the users that actually used it, and you accidentally deleted all users who did that activity.  So where do we find the price now?
+    \item Some steps for normalization (informally):
+        \begin{enumerate}
+            \item Is every row unique?  If not, delete identical rows.  This is now 1NF (first normal form).
+            \item Does it take the whole key to identify a non-key field?  This is now 2NF.
+            \item Can any non-key field be determined knowing another non-key field?  This is now 3NF.
+        \end{enumerate}
+    \item Some other basic vocabulary:
+        \begin{itemize}
+            \item DBMS is a database management system
+            \item Schema is the structure of the DB
+        \end{itemize}
+\end{itemize}
+
+
+\section{Database Security}
+\begin{itemize}
+    \item We want to maintain physical integrity and logical integrity.
+    \item Physical problems include power failures, disk crashes, etc.  Backups and redundancy are a good solution.
+    \item Logical corruption could occur with invalid users or errors.
+    \item Element integrity concerns itself with the correctness/accuracy of database elements.
+    \item Some checks may be done to validate correctness (ie: within a range, certain data type, etc.)
+    \item Keeping a change log is another good idea if space allows for it.
+    \item Referential integrity ensures that a value in one relation that is used as a key in another relation actually \emph{exists} in that other relation.
+    \item Auditability --- consider whether there is a need to keep an audit log of all database accesses.
+    \item Access control --- some places (like Ontario) have incredibly strong consent laws in regards to medical records.  This isn't enforceable via a database --- this is an open research problem!
+    \item Note that access control is really hard --- things that may not seem harmful in terms of access control may implicitly reveal information we're trying to protect!
+    \item User authentication --- the database may authenticate that a user was allowed to do something with the DB.
+    \item Availability --- what if database sharing causes availability problems?
+\end{itemize}
+
+\section{Data Disclosure and Inference}
+\begin{itemize}
+    \item Data inference is deriving sensitive data from supposedly non-sensitive data.
+    \item Two types of attacks:
+        \begin{itemize}
+            \item Direct attack --- issue a query that will give sensitive data but in an obfuscated query to fool the DMBS into allowing it.
+            \item Indirect attack --- infer sensitive data from some statistical results.
+        \end{itemize}
+\end{itemize}
+
+\subsection{Tracker Attacks}
+\begin{itemize}
+    \item ``Tracker attacks'' basically fool DBs into revealing information through seemingly innocent commands, and then using the data to infer the desired result that was initially directly blocked.
+    \item For example, to get a specific user's grade, perhaps abuse features about that user to help get info about them specifically.
+    \item Best way to defend against it is just audit logs and then deal with the attacker --- it's just too hard to defend against!
+    \item Other potential ways are:
+        \begin{itemize}
+            \item Suppression --- suppress sensitive data from a result.
+            \item Concealing --- provide answers that are close to an actual value, but not actually.
+            \item n-item k-percent rule --- for a set of records included a in result, if there is a subset of n records that are responsible for over k percent of the result, omit the n records from result.  Note that the omission in itself could also leak information.
+            \item Combine results in the returned data, or report a set/range of possible values.
+            \item Return a random sample.
+            \item Randomly add a bit of error to each value before computing the result, and store the random error in your DB elsewhere.
+        \end{itemize}
+\end{itemize}
+
+\subsection{Differential Privacy}
+\begin{itemize}
+    \item Imagine you have two datsets --- one that includes restaurants Bob rates highly, and one that doesn't include any ratings from Bob.
+    \item Differential privacy ensures that if Bob executes a query on the first dataset he gets nearly the same results as if he executed it on the second dataset.
+    \item That is, from Bob's perspective, there is no difference.
+    \item Basically, this matters because we don't want people to be able to tell us apart within the databases of companies that collect a lot of data.
+    \item Typically, diff. privacy can be achieved by adding noise to the result of a query before releasing it.
+    \item But with differential privacy, by adding noise to do so, we reduce accuracy.
+    \item For example, a public database of Warfarin use originally leaked too much sensitive patient data, but the dosing recommendations were safer.  But by improving privacy via adding noise, the dosing recommendations could kill patients!
+\end{itemize}
+
+\section{Multilevel Security Databases}
+\begin{itemize}
+    \item MLS databases support the classification/compartmentalization of information according to its confidentiality, using two sensitive levels (sensitive and not sensitive).
+    \item This can be done at the element level if required.
+    \item In an MLS database, each object has a sensitivity classification and maybe a set of compartments.
+    \item Suppose you wanted to implement the *-property (no read up, no write down) in an MLS setting.
+        \begin{itemize}
+            \item This is really hard --- if the user is doing a write-up, and cannot read the data, you are doing a blind write.
+            \item Write downs would need a sanitization mechanism.
+            \item The problem is DBMSs must have R/W access at all levels to answer user queries, perform backups, etc.
+            \item For example, how could you record the salary for a secret agent if you aren't allowed to know who the agent is?
+            \item We are left needing to trust the DMBS --- so the *-property doesn't work well here.
+        \end{itemize}
+    \item SQL supports polyinstantiation as a method of enforcing confidentiality.  In polyinstantiation, more than one row in the same relation can have the same \emph{key} --- this violates normalization principles though!
+    \item So, depending on the user's clearance, they would get different answers for a query.
+    \item However, the \emph{existence} of the record itself could be confidential!
+    \item A more common method of implementing this style of confidentiality is partitioning.
+        \begin{itemize}
+            \item Each classification level has a separate \emph{database}, similar to the Bell LaPadula approach.
+            \item This is simple!
+            \item However, this may lead to redundant data storage in multiple databases.
+            \item This also does not address a problem with high-level users needing to access low-level data combined with high-level data.
+        \end{itemize}
+    \item Yet another approach is encryption, with a key unique to its classification level.
+        \begin{itemize}
+            \item As per usual, one must use the encryption scheme in the right way --- for example, encrypting the same value in different records with the same key should lead to different ciphertexts!
+            \item Processing queries may now become expensive.
+            \item There is some research in doing processing directly on the encrypted data (homomorphic encryption).
+        \end{itemize}
+    \item Yet another idea --- the integrity lock.
+        \begin{itemize}
+            \item This provides both integrity and access control!
+            \item Each data item consists of:
+                \begin{enumerate}
+                    \item The data item
+                    \item A (concealed) integrity level
+                    \item A MAC/signature covering the above + the item's attribute name and record number
+                \end{enumerate}
+            \item The signature protects attacks on the above fields, such as attacks trying to modify the sensitivity level or move/copy the item in the database.
+            \item This doesn't protect against replay attacks though --- an attacker could do something and replace/restore the original value with the correct MAC lock.
+        \end{itemize}
+\end{itemize}
+
+\end{document}
