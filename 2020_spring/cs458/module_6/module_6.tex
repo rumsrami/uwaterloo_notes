@@ -135,4 +135,51 @@
         \end{itemize}
 \end{itemize}
 
+\section{Design of Secure Databases}
+\begin{itemize}
+    \item We usually have a front-end that authenticates a user and forwards their queries to a DMBS.
+    \item The front-end gets the results from the DMBS and removes data items that a user should not be able to see before passing the results back to the user.
+    \item This allows for the use of existing DMBS and databases, but could be inefficient if the DMBS returns many items and most of them get dropped by the front-end!
+    \item One way to tackle this is using commutative filters --- the front-end should re-write the user's query according to the user's security classification.
+    \item this means we can discard forbidden data items well before even hitting the DB.
+    \item Another idea is using distributed/federated databases.  This is based on the partitioning concept; the FE only forwards the user query to DBs that the user can access.  But it may have to combine the results from multiple DBs.
+    \item And remember, you have to trust the FE as it may see all the data!
+    \item A third idea is views --- restrict parts of the DB a user can see.
+    \item Trueman Semantics --- we will always give an answer, even if it's wrong, as \emph{not} answering reveals too much!
+    \item Meanwhile, Non-Trueman Semantics will reject queries that access data the user cannot access; this would mean the user is aware that this data is sensitive.
+\end{itemize}
+
+\section{Data Mining}
+\begin{itemize}
+    \item The combination of storing sensitive information, in multiple databases, has raised concerns and attention about data mining.
+    \item With so much data and from so many possible locations, data inference is now a very real issue.
+    \item Data mining tries to automatically find patterns in data --- there is useful/valuable uses for it, but it can also be used maliciously.
+    \item The main security critiques against data mining are:
+        \begin{itemize}
+            \item Confidentiality --- derivation of sensitive info
+            \item Integrity --- mistakes in data
+            \item Availability --- different databases may not be compatible
+        \end{itemize}
+    \item A good practice is to anonymise data records before releasing them --- but often, they don't do it correctly.
+    \item $k$-anonymity --- anonymizing a dataset.
+        \begin{itemize}
+            \item Remove key attributes AND candidate key attributes before release --- things like name, SIN, address, phone number, etc.
+            \item Next, quais-identifiers --- non-key attributes but that could beu sed to identify records.  For example, 5-digit ZIP code + birth date + gender could udentiy about 87\% of the US population.
+            \item Lastly, identify sensitive attributes --- these are what we want to keep for researchers/analysis/whatever.
+            \item Another idea is ``blurring'' the quasi-identifiers via generalization, so we get semantically consistent values until we have $k$ identical records.
+        \end{itemize}
+    \item Unfortunately, $k$-anonmyity will not solve everything.
+        \begin{itemize}
+            \item Sensitive values in an equivalence class will lack diversity.
+            \item The attacker having background knowledge can also help.
+        \end{itemize}
+    \item Another strategy is $l$-diversity:
+        \begin{itemize}
+            \item Ensure sensitive attributes are diverse in each quasi-identifier equivalence class.
+            \item The most common strategy is using distinct $l$-diversity.  For each equivalence class, ensure there are at least $l$ well-represented sensitive values.
+            \item This doesn't prevent probabilistic inference attacks, though.
+        \end{itemize}
+    \item One more approach is adding noise.  The accuracy will go down but the privacy will go up --- but if you do it evenly it won't sacrifice too much.
+\end{itemize}
+
 \end{document}
