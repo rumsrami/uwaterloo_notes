@@ -1,0 +1,70 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 18: Markov Decision Processes, Part 2}
+\end{center}
+
+\section{Solving for the Optimal Policy}
+\begin{itemize}
+    \item $V^{\pi}(s)$ represents the expected utility of entering state $s$ and following policy $\pi$ after.
+    \item $V^*(s)$ means the expected utility of entering state $s$ and following optimal policy $\pi^*$ after.
+    \item What is the expected utility if I am in state $s$ and take action $a$?
+        \[
+            Q^*(s, a) = \sum_{s'} P(s' | s, a) V^*(s')
+        \]
+    \item In state $s$, choose an action that maximizes my expected utility:
+        \[
+            \pi^*(s) = \text{argmax}_a Q^*(s, a)
+        \]
+\end{itemize}
+
+\subsection{Bellman Equations}
+\begin{itemize}
+    \item We define $V$ and $Q$ as such:
+        \begin{align*}
+            V^*(s) &= R(s) + \gamma \max_a Q^*(s, a)\\
+            Q^*(s, a) &= \sum_{s'} P(s' | s, a) V^*(s')
+        \end{align*}
+    \item If we combine the equations, we get the Bellman equation:
+        \[
+            V^*(s) = R(s) + \gamma \max_a \sum_{s'} P(s' | s,a) V^*(s')
+        \]
+    \item We cannot solve the Bellman equation system efficiently.
+    \item We can solve for the $V^*(s)$'s iteratively:
+        \begin{enumerate}
+            \item Let $V_i(s)$ be the values for the $i$'th iteration.  Start with arbitrary initial values for $V_0(s)$.
+            \item As the $i$'th iteration, compute $V_{i+1}(s) = R(s) + \gamma \max_a \sum_{s'} P(s' | s, a) V_i(s')$.
+            \item Terminate when $\max_s|V_i(s) - V_{i+1}(s)|$ is small enough.
+        \end{enumerate}
+    \item If we apply the Bellman update infinitely often, $V_i$'s are guaranteed to converge to the optimal values!
+\end{itemize}
+
+\subsection{Value Iteration}
+\begin{itemize}
+    \item Each state accumulates negative rewards until the algorithm finds a point to the +1 goal state.
+    \item We have two types of updates for $V^*(s)$:
+        \begin{itemize}
+            \item Synchronous --- store and use $V_i(s)$ to calculate $V_{i+1}(s)$.
+            \item Asynchronous --- store and use $V_i(s)$ and update the values one at a time in any order.
+        \end{itemize}
+\end{itemize}
+
+\end{document}
