@@ -1,0 +1,81 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 20: Reinforcement Learning}
+\end{center}
+
+\section{Policy Iteration}
+\begin{itemize}
+    \item Deriving the optimal policy does not require accurate estimates of the utility function, $V^*(s)$.
+    \item Policy iteration alternates between two steps:
+        \begin{enumerate}
+            \item Policy evaluation --- given a policy $\pi_i$, calculate $V^{\pi_i}(s)$ which is the utility of each state if the policy were to be executed.
+            \item Policy improvement --- calculate a new policy $\pi_{i+1}$ using $V^{\pi_i}$.
+        \end{enumerate}
+        and terminate when there is no change in the policy.
+    \item Policy improvement can be defined as:
+        \[
+            \pi_{i+1}(s) = \arg \max_a \sum_{s'} P(s' | s, a) V^{\pi_i}(s')
+        \]
+    \item Policy evaluation can be defined as:
+        \[
+            V_i(s) = R(s) + \gamma \sum_{s'}P(s' | s, \pi_i(s)) V_i(s')
+        \]
+    \item Solving the policy evaluation step looks similar to the Bellman equations --- however, since it does not rely on the max, it is linear and thus much simpler to solve!
+    \item For $n$ states, it would take $O(n^3)$ time to solve exactly via linear algebra, though we can also solve faster using an iterative method to estimate the value.
+\end{itemize}
+
+\section{Passive Reinforcement Learning}
+\begin{itemize}
+    \item Recall RL is one of three types of ML, and it's kind of in-between supervised and unsupervised learning.
+    \item We don't provide feedback for all the examples; and we deal with rewards and punishments once in a while.
+    \item We want to maximize our total expected reward.
+\end{itemize}
+
+\subsection{Direct Utility Estimation}
+\begin{itemize}
+    \item Let us first consider a passive learning agent:
+        \begin{itemize}
+            \item Fix a policy $\pi$.
+            \item The goal is to learn $V^{\pi}(s)$, how good the policy is, similar to policy evaluation.
+            \item Note the agent knows neither the transition model $P(s' | s, a)$, nor the reward function $R(s)$.  This is the key difference between policy evaluation and our passive learning agent.
+        \end{itemize}
+    \item $V^{\pi}(s)$ is the expected total discounted reward from state $s$ onward, and is the average reward in all samples for $s$.  Each trial provides a sample of $V^{\pi}(s)$ for each state visited on the trial.
+    \item This is very simple and reduces reinforcement learning to supervised learning, but it misses the fact that the $V^{\pi}(s)$ values for different states are not independent, but actually related by the Bellman equations.
+\end{itemize}
+
+\subsection{Adaptive Dynamic Programming}
+\begin{itemize}
+    \item So we want to learn the $V^{\pi}(s)$ via Bellman Equations.  But we know neither the reward function or the transition probabilities!
+    \item We can instead use the \emph{observed} rewards for our reward function.
+    \item And we can use supervised learning to deal with the transition probabilities! We just have to count our observed transitions to build our transition probabilities! 
+\end{itemize}
+
+\subsection{Temporal Difference Learning}
+\begin{itemize}
+    \item Also tries to consider relationship between the different utility values in different states, similar to adaptive dynamic.
+    \item Recall that $V^\pi(s) = R(s) + \gamma V^\pi(s')$ should be satisfied.
+    \item Let us state in this case that the LHS is the current estimate and the RHS is the target estimate.
+    \item We update $V^\pi(s)$ with $V^\pi(s) + \alpha(R(s) + \gamma V^\pi(s') - V^\pi(s))$, where $\alpha$ is the learning rate.
+    \item Note we don't need the transition probabilities any more!  We directly use observed transitions within our update rules rather than having to estimate them.
+\end{itemize}
+
+\end{document}
