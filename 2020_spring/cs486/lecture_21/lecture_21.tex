@@ -1,0 +1,119 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 21: Reinforcement Learning}
+\end{center}
+
+\section{Passive and Active RL}
+\begin{itemize}
+    \item A passive agent has a fixed policy $\pi$ and wants to learn $ V^\pi(s)$, how good the policy is.
+    \item An active agent must decide on what policy it should follow.
+\end{itemize}
+
+\section{Active ADP Agent}
+\begin{itemize}
+    \item ADP --- adaptive dynamic programming.
+    \item Recall the passive ADP agent:
+        \begin{itemize}
+            \item Learns the reward function $R(s)$ through the observed rewards.
+            \item Learns the transition probabilities $P$ for the policy $\pi$.
+            \item Solves $V^\pi(s)$ using the simplified Bellman equation:
+                \[
+                    V^\pi(s) = R(s) + \gamma \sum_{s'} P(s'|s,\pi(s)) V^\pi(s')
+                \]
+        \end{itemize}
+    \item An active ADP agent should also:
+        \begin{itemize}
+            \item Learn the transition probabilities $P$ for all $(s, a)$.
+            \item Learn the values of $V^*(s)$, the expected utilities of the optimal policy for all the states.
+        \end{itemize}
+    \item We see that if an agent follows the optimal policy of the learned model, it does not learn accurate utility values and the true optimal policy.
+    \item For example, the agent might stick to a less safe route in our box word despite following the optimal policy (ie: same length as the safer route, but more dangerous)!
+    \item So, we should also \emph{explore} --- we should take actions to improve the current learned model, and perhaps find new, better routes!  This way, we might learn the true model.
+    \item Note we can't just do pure exploration or pure exploitation --- the latter may get stuck, the former will never improve and result in never applying what was learned by the agent.
+    \item The optimal exploration policy we discuss now is known as the GLIE scheme.
+        \begin{itemize}
+            \item GLIE: Greedy in the Limit of Infinite Exploration.
+            \item The agent must try each action in each state an unbounded number of times.
+            \item So, the agent eventually learns the true model and must eventually act in a greedy way.
+            \item We use the following update rule for value iteration:
+                \[
+                    V^+(s) = R(s) + \gamma \max_a f(\sum_{s'} P(s' | s, a) V^+(s), N(s, a))
+                \]
+            \item $V^+(s)$ is the optimistic estimate of the utility of the state, $s$.
+            \item $N(s, a)$ is the number of times action $a$ has been tried for the state.
+            \item $f(u, n)$ is the exploration function, trading off preference for high values of $u$ and preference for low values of $n$.
+            \item We prefer $(s, a)$ that the agent hasn't tried very often, and actions that are of high utility.
+            \item An example of the exploration function is:
+                \[
+                    f(u, n) = \begin{cases}R^+ &\text{if $n < N_e$} \\ u &\text{otherwise}\end{cases}
+                \]
+                where $R^+$ is an optimistic estimate of the best possible reward obtainable in any state, and $N_e$ is a fixed parameter.
+            \item The agent will try each state-action pair at least $N_e$ times.
+        \end{itemize}
+\end{itemize}
+
+\section{Active TD Agent}
+\begin{itemize}
+    \item TD --- temporal difference.
+    \item Recall the passive TD agent:
+        \begin{itemize}
+            \item When a transition occurs from $s$ to $s'$, update $V^{\pi}(s)$ as follows:
+                \[
+                    V^\pi(s) = V^\pi(s) + \alpha(R(s) + \gamma V^\pi(s') - V^\pi(s))
+                \]
+            \item $\alpha$ is the learning rate, and it should decrease as the number of times a state has been visited increases.
+            \item $R(s) + \gamma V^\pi(s')$ is the target value of $V\pi(s)$ based on the transition.
+        \end{itemize}
+    \item We can define an active TD agent as such:
+        \begin{itemize}
+            \item Learn the utility values $V(s)$ via:
+                \[
+                    V^*(s) = V^*(s) + \alpha(R(s) + \gamma V^*(s') - V^*(s))
+                \]
+            \item Learn the transition probabilities for all state-action pairs:
+                \[
+                    P(s'|s, a)
+                \]
+            \item Determine the optimal policy using the utility values and the transition probabilities:
+                \[
+                    \pi^*(s) = \arg \max_a \sum_{s'} P(s' | s, a) V^*(s')
+                \]
+        \end{itemize}
+    \item Another way we can define an active TD agent is as follows:
+        \begin{itemize}
+            \item We define $Q(s, a)$ as the expected total discount reward starting from the next state.
+            \item Meanwhile, we define $Q'(s, a)$, which obtains $R(s)$ and the expected total discounted reward starting from the next state.
+            \item Instead of using $Q$, we use $Q'$ for the action-utility representation.
+            \item Let us define the equilibrium value for $Q'$:
+                \[
+                    Q'(s, a) = R(s) + \gamma \sum_{s'} P(s'|s, a) \max_{a'} Q'(s', a')
+                \]
+            \item And when we transition from $s$ to $s'$ by taking $a$, $Q'(s, a)$ should change to $R(s) + \gamma \max_{a'} Q(s', a')$.
+            \item So, the temporal difference equation is:
+                \[
+                    Q'(s, a) = Q'(s, a) + \alpha [ R(s + \gamma \max_{a'} Q'(s' a') - Q'(s, a) ]
+                \]
+        \end{itemize}
+\end{itemize}
+
+\end{document}
+
