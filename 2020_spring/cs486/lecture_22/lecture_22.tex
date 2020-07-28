@@ -1,0 +1,96 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=python, keywordstyle={\bfseries \color{blue}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 486 --- Lecture 22: Game Theory}
+\end{center}
+
+\section{Intro to Game Theory}
+\begin{itemize}
+    \item Game theory: given a game, how would agents play it?
+    \item Mechanism design: how should we design the rules of the game so agents behave the way we want them to?  Almost like reverse game theory.
+    \item We focus mostly on game theory.
+    \item A game can be:
+        \begin{itemize}
+            \item Cooperative where agents have a common goal.
+            \item Competitive where agents have conflicting goals.
+            \item Or something in between.
+        \end{itemize}
+\end{itemize}
+
+\section{Dominant Strategy Equilibrium}
+\begin{itemize}
+    \item Consider a game, where we have two players, Alice and Bob (Alice is rows, Bob is columns):
+        \begin{table}[h!]
+            \centering
+            \begin{tabular}{|c|c|c|}
+            \hline
+                & home   & dancing \\ \hline
+        home    & (0, 0) & (0, 1)  \\ \hline
+        dancing & (1, 0) & (2, 2)  \\ \hline
+            \end{tabular}
+        \end{table}
+    \item Suppose both cannot communicate with each other.  So, they must independently make a decision.
+    \item Furthermore, they must choose at the same time, and cannot observe the other player's action (simultaneous move game).
+    \item We see that the utility is maximized by both of them dancing.
+    \item Let us denote $\sigma_i$ as the strategy of player $i$, and $\sigma_{-i}$ as the strategies of all players except $i$.
+    \item Let us denote $U_i(\sigma) = U_i(\sigma_i, \sigma_{-i})$ as the utility of agent $i$ under the strategy profile $\sigma$.
+    \item We define a strategy, $\sigma_i$, to dominate another one, $\sigma_i'$, if:
+        \begin{align*}
+            U_i(\sigma_i, \sigma_{-i}) &\geq U_i(\sigma_i', \sigma_{-i}), \forall \sigma_{-i}\\
+            U_i(\sigma_i, \sigma_{-i}) &> U_i(\sigma_i', \sigma_{-i}), \exists \sigma_{-i}
+        \end{align*}
+        Or in other words:
+        \begin{itemize}
+            \item The strategy is as good or better than the other strategy for all opposing strategies.
+            \item The strategy must be strictly better for at least one opposing strategy.
+        \end{itemize}
+    \item A dominant strategy dominates \emph{all} other strategies.
+    \item When each player has a dominant strategy, this is called a dominant strategy equilibrium.
+\end{itemize}
+
+\newpage
+\section{Nash Equilibrium}
+\begin{itemize}
+    \item Now let's consider another game:
+        \begin{table}[h!]
+            \centering
+            \begin{tabular}{|c|c|c|}
+            \hline
+                    & dancing & running \\ \hline
+            dancing & (2, 2)  & (0, 0)  \\ \hline
+            running & (0, 0)  & (1, 1)  \\ \hline
+            \end{tabular}
+        \end{table}
+    \item So, we know the optimal move is for them to both dance.
+    \item But it's also reasonable for them to both choose to go running.
+    \item This game has \emph{no} dominant strategy equilibrium!  Bob's choice would make Alice prefer another action (game is symmetric so WLOG)!  So, there is no dominant strategy.
+    \item So what can we do?
+    \item The Nash equilibrium is our answer.
+    \item Given a strategy profile, $(\sigma_i, \sigma_{-i})$, agent $i$'s strategy is a best response to other agents' strategies iff:
+        \[
+            U_i(\sigma_i, \sigma_{-1}) \geq U_i(\sigma_i', \sigma_{-i}), \forall \sigma_i' \neq \sigma_i
+        \]
+        In other words, given what other agents are doing, $\sigma_i$ is the best choice for \emph{me}.
+    \item Nash equilibrium is a strategy profile $\sigma$ iff each agent $i$'s strategy $\sigma_i$ is a best response to the other agents' strategies $\sigma_{-i}$.
+    \item Both (dancing, dancing) and (running, running) are Nash equilibria in the given game.
+\end{itemize}
+
+\end{document}

@@ -1,0 +1,118 @@
+\documentclass{article}
+
+\usepackage{times}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{fullpage}
+\usepackage{color}
+\usepackage{courier}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath, amsfonts, amssymb, amsthm}
+\usepackage{hyperref}
+\graphicspath{{./}}
+
+\lstset{language=c, keywordstyle={\bfseries \color{red}}, basicstyle=\footnotesize\ttfamily}
+\setlength{\paperheight}{11in}
+\author{Clement Tsang}
+
+\begin{document}
+
+\begin{center}
+    \Large{CS 458 --- Module 7: Non-Technical Aspects of Security/Privacy}
+\end{center}
+
+\section{Ethics}
+\begin{itemize}
+    \item Just because something is possible/legal doesn't mean you should do it.
+    \item Codes of professional conduct may be expectations that one is expected to uphold.
+    \item In Canada, there is CIPS, DHC.
+\end{itemize}
+
+
+\section{Security Plans}
+\begin{itemize}
+    \item A security plan is a document put together by an organization that explains what the security goals are, how they are to be met, and how they'll stay met.
+    \item A security plan should generally have these parts:
+        \begin{enumerate}
+            \item Policy --- a high-level statement of goals, responsibility, and commitment.
+            \item Current state --- A risk analysis describing the current status of the system, what assets/controls are there, what vulnerabilities are possible, what might go wrong, what one should do if new assets/vulnerabilities appear, etc.
+            \item Requirements --- what needs does the organization have?  Who is allowed to do what?  What audit logs should be kept?
+            \item Recommended controls --- where you list mechanisms to control vulnerabilities listed in Current State, satisfying needs in Requirements, taking account the priorities in Policy.  These could be, for example, security controls in this course!
+            \item Accountability --- who's responsible if security controls aren't implemented (properly), or something fails?
+            \item Timetable --- how and when are elements of the plan performed?
+            \item Continuing attention --- security plans should evolve and change as the organization and world change.
+        \end{enumerate}
+    \item More than one person/team should be in charge of a security plan.
+\end{itemize}
+
+\subsection{Business Continuity Plans}
+\begin{itemize}
+    \item AKA ``Disaster Recovery Plans''.
+    \item A BCP is a security plan where the focus is on availability.
+    \item This is what your organization will do if it encounters a situation that is:
+        \begin{itemize}
+            \item Catastrophic --- a large part of a computing capability is suddenly unavailable.
+            \item Long duration --- the outage is expected to last long enough that business will suffer if left unattended.
+        \end{itemize}
+    \item Some examples of a catastrophic failure is a natural disaster, a utility failing, pandemics (*cough cough COVID-19*); the IST in UW does have a pandemic plan, for example!
+    \item Writing the plan isn't enough though --- you might also need to:
+        \begin{itemize}
+            \item Acquire redundant equipment
+            \item Arrange for backups regularly
+            \item Stockpile supplies
+            \item Train employees so they know how to react --- this may involve live testing the BCP, but this may be problematic:
+                \begin{itemize}
+                    \item May be too disruptive to do
+                    \item May not be accurate enough of a test since it's \emph{only} a test, not the real deal
+                    \item No BCP during the \emph{testing} of the BCP!
+                \end{itemize}
+        \end{itemize}
+    \item We can also have an incident response plan, where this might not directly be affecting our business but could get worse.
+    \item So for example, a batch being tampered, website being defaced, etc.
+    \item These might need to consider things like:
+        \begin{itemize}
+            \item Legal issues
+            \item Preserving evidence
+            \item Records
+            \item Public relations
+        \end{itemize}
+    \item What potential coping methods could we do for, say, an incident involving the loss for our data centre?
+        \begin{itemize}
+            \item Hot sites --- a complete duplicate data centre.
+            \item Cold sites --- like a hot site but no computers (ie: IBM shipping you new machines if yours fail).
+            \item Mobile hot sites --- a hot site that you can move, so people don't, say, have to travel to a hot site that may be very far away.
+        \end{itemize}
+\end{itemize}
+
+\subsection{Choosing Controls}
+\begin{itemize}
+    \item We need some risk analysis to know how to choose controls, comprising of:
+        \begin{itemize}
+            \item Identify assets --- hardware, software, data, people, documentation, supplies.
+            \item Determine vulnerabilities --- think like an attacker, what things might be attacked?
+            \item Estimate likelihood of exploitation --- there are experts to do this as it's hard, but how likely are certain risks going to occur?
+            \item Compute expected loss --- what could be the impact of a risk?
+            \item Survey applicable controls --- for each risk, how can we control the vulnerability?
+            \item Project savings due to control --- for each control, the cost of control is its direct cost (buying, training, etc.) pus the exposure of the controlled risk.  Savings are the risk exposure minus the cost of control.  Hopefully, this will be positive.
+        \end{itemize}
+    \item The TRA (Threat and Risk Assessment) Process is managed by the RCMP for all federal government departments.
+    \item Steps for the TRA:
+        \begin{enumerate}
+            \item Make a list of threats that could affect IT assets
+            \item Make a list of controls that could mitigate/eliminate the threat
+            \item Calculate the total expected losses if no controls are implemented.
+            \item Evaluate the cost of buying various combinations of the possible controls.
+            \item Select and implement the package of controls that results in the lowest total expected losses (note that ``no controls'' is a totally valid response).
+        \end{enumerate}
+\end{itemize}
+
+\subsection{Physical Security}
+\begin{itemize}
+    \item Firewalls can't stop someone just making off with your actual machine.
+    \item Two major classes of physical threats --- natures and humans.
+    \item We can kinda mitigate against natural disasters by building based on likely natural disasters.
+    \item Vandals, thieves, and targeted attacks can be examples of human physical threats.
+\end{itemize}
+
+\end{document}
