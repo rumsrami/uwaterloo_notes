@@ -94,7 +94,7 @@
             \item Estimate likelihood of exploitation --- there are experts to do this as it's hard, but how likely are certain risks going to occur?
             \item Compute expected loss --- what could be the impact of a risk?
             \item Survey applicable controls --- for each risk, how can we control the vulnerability?
-            \item Project savings due to control --- for each control, the cost of control is its direct cost (buying, training, etc.) pus the exposure of the controlled risk.  Savings are the risk exposure minus the cost of control.  Hopefully, this will be positive.
+            \item Project savings due to control --- for each control, the cost of control is its direct cost (buying, training, etc.) plus the exposure of the controlled risk.  Savings are the risk exposure minus the cost of control.  Hopefully, this will be positive.
         \end{itemize}
     \item The TRA (Threat and Risk Assessment) Process is managed by the RCMP for all federal government departments.
     \item Steps for the TRA:
@@ -113,6 +113,109 @@
     \item Two major classes of physical threats --- natures and humans.
     \item We can kinda mitigate against natural disasters by building based on likely natural disasters.
     \item Vandals, thieves, and targeted attacks can be examples of human physical threats.
+\end{itemize}
+
+\section{Intellectual Property}
+\begin{itemize}
+    \item Intellectual property differs from ``real'' property (like a house or car), in that:
+        \begin{itemize}
+            \item It is non-depletable --- even if someone took it, it's still mine!
+            \item It is replicable --- I can make more copies of my IP.
+            \item It has a minimal marginal cost --- while the first copy might be expensive to build, the cost of making more copies after this should be small.
+        \end{itemize}
+    \item \emph{Trade secrets} are the simplest kind of IP --- there is no protection other than ``nobody else knows''.
+        \begin{itemize}
+            \item Now, of course, this isn't totally possible, since you'll probably have to tell someone how to make it to, well, make more.
+            \item Note you can't really protect the secret outside of hoping it doesn't leak, though you can sue if someone divulges the secret without permission.
+            \item People can also reverse-engineer trade secrets!
+            \item For example, RC4 was reverse-engineered, and since it relied on keeping it proprietary and secret as part of its protection\dots
+        \end{itemize}
+    \item \emph{Trademarks} protect names, brands, and logos.
+        \begin{itemize}
+            \item This lets you sue others who use that name in a confusing manner.
+            \item So, even if RC4's algorithm isn't protected, the \emph{name} still is!
+            \item In Canada, you can now register a trademark before using it, and you can register non-traditional things like smell, taste, etc.
+            \item However, it costs more now.
+        \end{itemize}
+    \item \emph{Patents} applies to inventions.
+        \begin{itemize}
+            \item They must be:
+                \begin{itemize}
+                    \item Novel (nobody has done it before)
+                    \item Useful (usually)
+                    \item Non-obvious to somebody who knows about the topic
+                \end{itemize}
+            \item However, you get a monopoly for this invention for 20 years, but now, you must tell the world how it works.  This tries to incentivize improving knowledge for the rest of humanity by sharing what would otherwise be kept secret.
+            \item Many cryptographic algorithms are/were patented --- this doesn't violate Kirchoff's/Shannon's in any way, it just means you have to pay licensing fees to use said algorithm.
+        \end{itemize}
+    \item \emph{Copyright} protects expressions of ideas in a tangible medium, but not the ideas themselves.
+        \begin{itemize}
+            \item There is no filing requirement, though you can get additional benefits if you do file.
+            \item These last a limited time --- in the US, it's for your life + 70 years; in Canada, it's the life + 50 years.
+            \item The copyright holder has monopoly rights over certain uses of the work.
+        \end{itemize}
+    \item There is also \emph{fair use}.  These are copying exceptions for purposes like criticism, comment, news reporting, etc.
+        \begin{itemize}
+            \item There are four tests that must be met to decide of fair use is allowed (in the US):
+                \begin{enumerate}
+                    \item The purpose and character of the use (is it commercial, non-profit, educational, etc.)
+                    \item Nature of copyrighted work
+                    \item The amount and substantiality of the portion used in relation to the copyrighted work as a whole
+                    \item The effect of the use upon the potential market/value of the copyrighted work
+                \end{enumerate}
+            \item In Canada, we don't have fair use --- we have \emph{fair dealing}.
+                \begin{itemize}
+                    \item This applies to private study, research, criticism, review, news, education, parody, and satire.
+                    \item This is an \emph{exhaustive} list!
+                    \item And things like time-shifting, backups, copying for private purposes, mash-ups, etc. are also legal.
+                    \item For example, downloading songs is probably legal in Canada; \emph{uploading} is probably not though!
+                \end{itemize}
+        \end{itemize}
+    \item Paracopyright: the Digital Millennium Copyright Act (DMCA) made it so that if there was some kind of copy protection mechanism, even if you were within your rights for fair use, it is illegal to break the copy protection!
+    \item In Canada, it was made illegal to, for example, lock a cell phone, as that could be locked via similar rules.
+\end{itemize}
+
+\section{Computer Crime}
+\begin{itemize}
+    \item Rules of evidence: how do we manage digital evidence?
+        \begin{itemize}
+            \item Chain of custody for digital evidence?
+            \item How do we preserve electronic evidence?
+        \end{itemize}
+    \item How do we deal with computer crime that (often) spans across countries?
+        \begin{itemize}
+            \item The Council of Europe cybercrime treaty (Canada and the US are signatories) stipulates that member countries pass laws making it easier to enforce laws in regards to telecommunications traffic.
+        \end{itemize}
+    \item What about some Canadian laws?
+        \begin{itemize}
+            \item C-30 was originally an act to combat child pornography, but it was criticized for allowing ISPs to hand over customer information without warrent and give the government authority to inspect packets.  Abandoned.
+            \item C-13 allowed any public officer can demand computer data in a person's control to not be deleted, and lowers the standard for seizing computer/transmission/tracking data.
+        \end{itemize}
+    \item Backdoors:
+        \begin{itemize}
+            \item Clipper chip
+            \item The main criticism with a backdoor is that if there is an intentional backdoor, people will usually find a way to use it.
+        \end{itemize}
+\end{itemize}
+
+\section{Software Failure}
+\begin{itemize}
+    \item If you buy a product and it fails, you can get a refund or get a new one usually.
+    \item With software?  Not as easy.  EULAs usually make you agree that software might not work.
+    \item Usually this isn't the case with embedded software.
+    \item So, how should you report software failures?
+        \begin{itemize}
+            \item Most vendors would like you to tell them and nobody else, as well, they don't want people exploiting their software.
+            \item Some of them back this up by legal rammifications!
+            \item But\dots what if the vendors don't fix said failures?
+            \item There are thus two approaches to software failure reporting:
+                \begin{itemize}
+                    \item One approach is full disclosure --- if a problem is found, post it to a full disclosure mailing list of security professionals.
+                    \item The reasoning is that if you have found it, people who are potentially looking to do harm may have done so, and by publicly ``shaming'' the vendor, the are more inclined to fix the problem.
+                    \item The flaw is that now, the vendor may have to race against the clock to fix the problem even though they may have just learned about it, and now people are going to be upset.
+                    \item The other approach is responsible disclosure --- tell the vendor first, and if no fix comes out (or at least some announcement of the flaw), then contact a coordinating centre like CERT to decide what to do next.
+                \end{itemize}
+        \end{itemize}
 \end{itemize}
 
 \end{document}
